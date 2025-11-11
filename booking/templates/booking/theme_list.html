@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>방탈출 테마 목록</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        .search-box { background: #f4f4f4; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .theme-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .theme-card h3 { margin-top: 0; }
+        .theme-card .details { color: #555; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>방탈출 테마 목록</h1>
+
+        <div class="search-box">
+            <form method="GET" action="{% url 'theme-list' %}">
+                <input type="text" name="search_query" placeholder="테마명 또는 장르" value="{{ search_query }}">
+                
+                <select name="branch">
+                    <option value="">모든 지점</option>
+                    {% for branch in branches %}
+                        <option value="{{ branch.branch_id }}" {% if selected_branch|stringformat:"s" == branch.branch_id|stringformat:"s" %}selected{% endif %}>
+                            {{ branch.branch_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                
+                <button type="submit">검색</button>
+            </form>
+        </div>
+
+        <div class="theme-list">
+            {% for theme in themes %}
+                <div class="theme-card">
+                    <h3>{{ theme.name }} <span style="font-size: 0.8em; color: #888;">({{ theme.branch.branch_name }})</span></h3>
+                    <p>{{ theme.description }}</p>
+                    <div class="details">
+                        <span>장르: {{ theme.genre }}</span> |
+                        <span>난이도: {{ theme.difficulty }}</span> |
+                        <span>시간: {{ theme.duration }}분</span> |
+                        <span>가격: {{ theme.price }}원</span>
+                    </div>
+                    </div>
+            {% empty %}
+                <p>조회 가능한 테마가 없습니다.</p>
+            {% endfor %}
+        </div>
+
+    </div>
+
+</body>
+</html>
