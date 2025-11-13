@@ -1,48 +1,118 @@
 # booking/views.py
-from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q 
 from django.contrib.auth import logout, login, authenticate
+from django.shortcuts import render, get_object_or_404, redirect
+from django.core.exceptions import PermissionDenied
+from django.http import Http404
 from .models import Theme, Branch, Member, Reservation, Review
+from .forms import ReviewForm # 방금 만든 폼 import
 
-def theme_list(request):
-    """
-    고객용 테마 목록 조회 및 검색/필터링 뷰
-    """
-    
-    # 1. 쿼리 파라미터(GET 요청) 받기
-    # 예: /themes/?search_query=공포&branch=1
+# 테마 목록 뷰
+def theme_list_view(request):
     search_query = request.GET.get('search_query', '')
     branch_id = request.GET.get('branch', '')
     
-    # 2. 기본 쿼리셋 (활성화된 테마만)
     themes = Theme.objects.filter(is_active=True, status='Ready')
     
-    # 3. 검색어(search_query)가 있으면 필터링
     if search_query:
-        # 테마명 또는 장르에 검색어가 포함된 경우
         themes = themes.filter(
             Q(name__icontains=search_query) | 
             Q(genre__icontains=search_query)
         )
-        
-    # 4. 지점(branch)이 선택되었으면 필터링
     if branch_id:
         themes = themes.filter(branch_id=branch_id)
         
-    # 5. 검색/필터링에 사용할 전체 지점 목록도 전달
     branches = Branch.objects.filter(is_active=True)
 
-    # 6. context에 담아 템플릿으로 전달
     context = {
         'themes': themes,
         'branches': branches,
-        'selected_branch': branch_id, # 사용자가 선택한 값 기억
-        'search_query': search_query, # 사용자가 입력한 값 기억
+        'selected_branch': branch_id,
+        'search_query': search_query,
     }
-    
-    # 'booking/theme_list.html' 템플릿을 사용하여 페이지를 렌더링
     return render(request, 'booking/theme_list.html', context)
+
+# 테마 상세 뷰
+def theme_detail_view(request, theme_id):
+    theme = get_object_or_404(Theme, theme_id=theme_id, is_active=True)
+    
+    # 해당 테마에 달린 모든 리뷰들을 가져옴
+    reviews = Review.objects.filter(reservation__theme=theme)
+    
+    context = {
+        'theme': theme,
+        'reviews': reviews,
+    }
+    return render(request, 'booking/theme_detail.html', context)
+
+# 리뷰 작성 뷰
+@login_required # 로그인 필수
+def review_create_view(request, reservation_id):
+    # 1. 리뷰를 작성할 대상 예약(Reservation)을 찾음
+    reservation = get_object_or_404(Reservation, reservation_id=reservation_id)
+
+    # 2. 권한 확인 (본인의 예약인지? 이용 완료했는지?)
+    if reservation.member != request.user:
+        raise PermissionDenied("본인의 예약에 대해서만 리뷰를 작성할 수 있습니다.")
+    
+    if reservation.status != 'Completed':
+        raise Http404("이용 완료된 예약 건에 대해서만 리뷰 작성이 가능합니다.")
+        
+    # 3. 이미 리뷰를 작성했는지 확인 (OneToOneField 덕분에 가능)
+    try:
+        if reservation.review: # 이미 리뷰가 존재하면
+             return redirect('review-update', review_id=reservation.review.review_id)
+    except Review.DoesNotExist:
+        pass # 리뷰가 없으면 통과
+
+    # 4. 폼 처리 (GET / POST)
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            # commit=False: DB에 바로 저장하지 않고, 추가 정보(member, reservation)를 먼저 채움
+            review = form.save(commit=False)
+            review.member = request.user
+            review.reservation = reservation
+            review.save()
+            # 리뷰 작성 완료 후, 테마 상세 페이지로 이동
+            return redirect('theme-detail', theme_id=reservation.theme.theme_id)
+    else:
+        form = ReviewForm() # GET 요청 시 빈 폼
+
+    context = {
+        'form': form,
+        'reservation': reservation,
+        'theme': reservation.theme,
+    }
+    return render(request, 'booking/review_form.html', context)
+
+# 리뷰 수정 뷰
+@login_required
+def review_update_view(request, review_id):
+    review = get_object_or_404(Review, review_id=review_id)
+    
+    # 권한 확인 (본인의 리뷰인지?)
+    if review.member != request.user:
+        raise PermissionDenied("본인의 리뷰만 수정할 수 있습니다.")
+        
+    if request.method == 'POST':
+        # instance=review: 기존 리뷰 객체 위에 폼 데이터를 덮어씀 (수정)
+        form = ReviewForm(request.POST, instance=review)
+        if form.is_valid():
+            form.save()
+            # 수정 완료 후, 테마 상세 페이지로 이동
+            return redirect('theme-detail', theme_id=review.reservation.theme.theme_id)
+    else:
+        # GET 요청 시, 기존 리뷰 내용이 채워진 폼
+        form = ReviewForm(instance=review) 
+
+    context = {
+        'form': form,
+        'review': review, # 템플릿에서 '수정'임을 명시하기 위해 전달
+        'theme': review.reservation.theme,
+    }
+    return render(request, 'booking/review_form.html', context)
 
 def signup_view(request):
     """
