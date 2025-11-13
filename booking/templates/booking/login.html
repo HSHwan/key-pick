@@ -1,0 +1,20 @@
+{% extends 'booking/base.html' %} {% block title %}로그인{% endblock %} {% block content %}
+<h2>로그인</h2>
+
+{% if error %}
+        <p style="color: red; font-weight: bold;">{{ error }}</p>
+{% endif %}
+
+<form method="POST">
+  {% csrf_token %}
+  <div>
+    <label for="id_login_id">로그인 ID (username):</label>
+    <input type="text" name="username" id="id_login_id" />
+  </div>
+  <div>
+    <label for="id_password">비밀번호:</label>
+    <input type="password" name="password" id="id_password" required />
+  </div>
+  <button type="submit">로그인</button>
+</form>
+{% endblock %}
