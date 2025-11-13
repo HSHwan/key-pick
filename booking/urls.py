@@ -3,7 +3,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # 'http://.../themes/' URL을 views.theme_list 함수에 연결
-    # name='theme-list'는 HTML 템플릿에서 이 URL을 부를 때 사용할 별명
+    # 담당자 B의 작업 (이미 존재함)
     path('themes/', views.theme_list, name='theme-list'),
+    
+    # 담당자 A의 작업 (추가)
+    path('signup/', views.signup_view, name='signup'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('my-page/', views.my_page_view, name='my-page'),
 ]

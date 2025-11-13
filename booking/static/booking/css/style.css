@@ -1,0 +1,35 @@
+/* booking/static/booking/css/style.css */
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+}
+.navbar {
+  background-color: #333;
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.navbar a {
+  color: white;
+  text-decoration: none;
+  padding: 0 10px;
+}
+.container {
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.footer {
+  text-align: center;
+  padding: 20px;
+  margin-top: 30px;
+  color: #888;
+  font-size: 0.9em;
+}

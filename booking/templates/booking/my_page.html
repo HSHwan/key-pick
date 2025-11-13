@@ -1,0 +1,42 @@
+{% extends 'booking/base.html' %} 
+
+{% block title %}마이페이지{% endblock %} 
+
+{% block content %}
+    <h2>{{ user.name }}님의 마이페이지</h2>
+    <p>로그인 ID: {{ user.login_id }}</p>
+    <p>연락처: {{ user.phone }}</p>
+    <p>역할: {{ user.get_role_display }}</p>
+    <hr>
+
+    <h3>내 예약 현황</h3>
+    {% for r in reservations %}
+        <div class="reservation-card" style="border:1px solid #eee; padding: 10px; margin-bottom: 10px;">
+            <p>
+                <strong>{{ r.theme.name }}</strong> ({{ r.theme.branch.branch_name }})
+            </p>
+            <p>
+                예약 시간: {{ r.reservation_time }} | 
+                상태: <strong>{{ r.get_status_display }}</strong>
+            </p>
+            </div>
+    {% empty %}
+        <p>예약 내역이 없습니다.</p>
+    {% endfor %}
+
+    <hr>
+
+    <h3>내가 작성한 리뷰</h3>
+    {% for review in reviews %}
+        <div class="review-card" style="border:1px solid #eee; padding: 10px; margin-bottom: 10px;">
+            <p>
+                <strong>{{ review.reservation.theme.name }}</strong> | 
+                별점: <strong>{{ review.rating }}점</strong>
+            </p>
+            <p>{{ review.comment|linebreaksbr }}</p>
+            </div>
+    {% empty %}
+        <p>작성한 리뷰가 없습니다.</p>
+    {% endfor %}
+
+{% endblock %}
