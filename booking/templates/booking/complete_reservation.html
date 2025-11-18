@@ -1,0 +1,80 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}예약 완료 처리{% endblock %}
+
+{% block content %}
+<div class="complete-reservation-form">
+    <h1>✅ 예약 완료 처리</h1>
+    
+    <hr>
+    
+    <!-- 예약 정보 요약 -->
+    <div class="reservation-info" style="background: #f4f4f4; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        <h2>예약 정보</h2>
+        <p><strong>예약 번호:</strong> {{ reservation.reservation_id }}</p>
+        <p><strong>테마:</strong> {{ reservation.theme.name }} ({{ reservation.theme.branch.branch_name }})</p>
+        <p><strong>예약자:</strong> {{ reservation.member.name|default:"탈퇴회원" }}</p>
+        <p><strong>예약 시간:</strong> {{ reservation.reservation_time|date:"Y.m.d H:i" }}</p>
+        <p><strong>참가 인원:</strong> {{ reservation.num_of_participants }}명</p>
+    </div>
+    
+    <hr>
+    
+    <!-- 완료 처리 폼 -->
+    <div class="completion-form">
+        <h2>이용 결과 입력</h2>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 20px;">
+                <label for="hint_count" style="display: block; margin-bottom: 5px; font-weight: bold;">
+                    힌트 사용 횟수:
+                </label>
+                <input type="number" 
+                       id="hint_count" 
+                       name="hint_count" 
+                       min="0" 
+                       value="0" 
+                       style="width: 200px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">
+                    <input type="checkbox" name="is_success" style="margin-right: 5px;">
+                    탈출 성공
+                </label>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="clear_time" style="display: block; margin-bottom: 5px; font-weight: bold;">
+                    클리어 시간 (분):
+                </label>
+                <input type="number" 
+                       id="clear_time" 
+                       name="clear_time" 
+                       min="0" 
+                       placeholder="탈출 성공 시에만 입력"
+                       style="width: 200px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <p style="font-size: 0.9em; color: #888; margin-top: 5px;">
+                    * 탈출에 성공하지 못한 경우 비워두세요.
+                </p>
+            </div>
+            
+            <hr style="margin: 30px 0;">
+            
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" 
+                        style="background: #28a745; color: white; padding: 12px 30px; border: none; border-radius: 4px; font-size: 1em; cursor: pointer;">
+                    완료 처리
+                </button>
+                <a href="{% url 'theme-manager-dashboard' %}" 
+                   style="background: #6c757d; color: white; padding: 12px 30px; border-radius: 4px; text-decoration: none; display: inline-block;">
+                    취소
+                </a>
+            </div>
+        </form>
+    </div>
+    
+</div>
+{% endblock %}
