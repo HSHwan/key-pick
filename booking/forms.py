@@ -1,6 +1,6 @@
 # booking/forms.py
 from django import forms
-from .models import Review, Reservation
+from .models import Review, Reservation, IssueReport, Schedule, Branch
 
 class ReviewForm(forms.ModelForm):
     class Meta:
@@ -19,7 +19,6 @@ class ReviewForm(forms.ModelForm):
 class ReservationForm(forms.ModelForm):
     class Meta:
         model = Reservation
-        # 사용자로부터 예약 시간과 참가 인원만 입력받음
         fields = ['reservation_time', 'num_of_participants']
         widgets = {
             'reservation_time': forms.DateTimeInput(
@@ -32,4 +31,30 @@ class ReservationForm(forms.ModelForm):
         labels = {
             'reservation_time': '예약 날짜 및 시간',
             'num_of_participants': '참가 인원',
+        }
+
+class IssueReportForm(forms.ModelForm):
+    class Meta:
+        model = IssueReport
+        fields = ['theme', 'issue_description']
+        widgets = {
+            'issue_description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': '문제 상황을 자세히 적어주세요.'}),
+            'theme': forms.Select(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'theme': '문제 발생 테마',
+            'issue_description': '내용',
+        }
+
+class ScheduleForm(forms.ModelForm):
+    class Meta:
+        model = Schedule
+        fields = ['member', 'branch', 'work_date', 'start_time', 'end_time', 'assigned_theme']
+        widgets = {
+            'work_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'end_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'member': forms.Select(attrs={'class': 'form-control'}),
+            'branch': forms.Select(attrs={'class': 'form-control'}),
+            'assigned_theme': forms.Select(attrs={'class': 'form-control'}),
         }

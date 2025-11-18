@@ -1,0 +1,9 @@
+{% extends 'booking/base.html' %} {% block content %}
+<div class="container">
+  <h2>직원 스케줄 등록</h2>
+  <form method="POST">
+    {% csrf_token %} {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">등록하기</button>
+  </form>
+</div>
+{% endblock %}
