@@ -11,4 +11,6 @@ urlpatterns = [
     path('themes/<int:theme_id>/', views.theme_detail_view, name='theme-detail'),
     path('review/create/<int:reservation_id>/', views.review_create_view, name='review-create'),
     path('review/update/<int:review_id>/', views.review_update_view, name='review-update'),
+    path('reservation/create/<int:theme_id>/', views.reservation_create_view, name='reservation-create'),
+    path('reservation/complete/<int:reservation_id>/', views.reservation_complete_view, name='reservation-complete'),
 ]
