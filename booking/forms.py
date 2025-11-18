@@ -15,6 +15,7 @@ class ReviewForm(forms.ModelForm):
             'rating': '별점 (1~5점)',
             'comment': '리뷰 내용',
         }
+
 class ReservationForm(forms.ModelForm):
     class Meta:
         model = Reservation

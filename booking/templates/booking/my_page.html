@@ -3,6 +3,7 @@
 {% block title %}마이페이지{% endblock %} 
 
 {% block content %}
+<div class="container">
     <h2>{{ user.name }}님의 마이페이지</h2>
     <p>로그인 ID: {{ user.login_id }}</p>
     <p>연락처: {{ user.phone }}</p>
@@ -11,15 +12,47 @@
 
     <h3>내 예약 현황</h3>
     {% for r in reservations %}
-        <div class="reservation-card" style="border:1px solid #eee; padding: 10px; margin-bottom: 10px;">
-            <p>
-                <strong>{{ r.theme.name }}</strong> ({{ r.theme.branch.branch_name }})
-            </p>
-            <p>
-                예약 시간: {{ r.reservation_time }} | 
-                상태: <strong>{{ r.get_status_display }}</strong>
-            </p>
+        <div class="reservation-card" style="border:1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+            
+            <div class="info">
+                <p style="margin-bottom: 5px;">
+                    <strong>{{ r.theme.name }}</strong> ({{ r.theme.branch.branch_name }})
+                </p>
+                <p style="margin: 0; color: #555;">
+                    예약 시간: {{ r.reservation_time|date:"Y-m-d H:i" }} | 
+                    상태: 
+                    <span class="
+                        {% if r.status == 'Confirmed' %}status-confirmed
+                        {% elif r.status == 'Cancelled' %}status-cancelled
+                        {% else %}status-default
+                        {% endif %}">
+                        {{ r.get_status_display }}
+                    </span>
+                </p>
             </div>
+
+            <div class="actions">
+                
+                {% if r.status == 'Confirmed' %}
+                    <form action="{% url 'reservation-cancel' r.reservation_id %}" method="POST" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('정말 예약을 취소하시겠습니까?');">
+                            예약 취소
+                        </button>
+                    </form>
+                {% endif %}
+
+                {% if r.status == 'Completed' %}
+                    {% if r.has_review %} <span class="badge bg-secondary">리뷰 작성 완료</span>
+                    {% else %}
+                        <a href="{% url 'review-create' r.reservation_id %}" class="btn btn-sm btn-primary">
+                            리뷰 쓰기
+                        </a>
+                    {% endif %}
+                {% endif %}
+                
+            </div>
+        </div>
     {% empty %}
         <p>예약 내역이 없습니다.</p>
     {% endfor %}
@@ -28,15 +61,17 @@
 
     <h3>내가 작성한 리뷰</h3>
     {% for review in reviews %}
-        <div class="review-card" style="border:1px solid #eee; padding: 10px; margin-bottom: 10px;">
-            <p>
+        <div class="review-card" style="border:1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px;">
+            <p style="margin-bottom: 5px;">
                 <strong>{{ review.reservation.theme.name }}</strong> | 
-                별점: <strong>{{ review.rating }}점</strong>
+                <span style="color: #f0ad4e;">★ {{ review.rating }}</span>
+                <small style="color: #999;">({{ review.created_at|date:"Y-m-d" }})</small>
             </p>
             <p>{{ review.comment|linebreaksbr }}</p>
-            </div>
+            <a href="{% url 'review-update' review.review_id %}" style="font-size: 0.9em;">수정하기</a>
+        </div>
     {% empty %}
         <p>작성한 리뷰가 없습니다.</p>
     {% endfor %}
-
+</div>
 {% endblock %}

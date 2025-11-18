@@ -7,11 +7,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 # 1. Member (회원) - Django 인증 시스템을 맞춤 설정 (Custom)
 # ----------------------------------------------------------------------
 class MemberManager(BaseUserManager):
-    """
-    Django 기본 User 모델 대신, 'login_id'를 기본 ID로 사용하는
-    커스텀 Member 모델의 매니저.
-    """
-    def create_user(self, login_id, name, phone, role, password=None):
+    def create_user(self, login_id, name, phone, role='Customer', password=None):
         if not login_id:
             raise ValueError('Must have a login_id')
         
@@ -21,25 +17,26 @@ class MemberManager(BaseUserManager):
             phone=phone,
             role=role,
         )
-        user.set_password(password) # 비밀번호는 해시 처리하여 저장
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
     def create_superuser(self, login_id, name, phone, password):
-        # createsuperuser 명령어로 사용될 관리자
-        user = self.create_user(
+        # 슈퍼유저는 role을 'Admin'으로 설정하여 생성
+        return self.create_user(
             login_id=login_id,
-            password=password,
             name=name,
             phone=phone,
-            role='Admin', # 슈퍼유저는 Admin 역할
+            password=password,
+            role='Admin',
         )
-        user.is_admin = True
-        user.is_staff = True
-        user.save(using=self._db)
-        return user
 
 class Member(AbstractBaseUser):
+    """
+    DB 필드: member_id, login_id, password, name, phone, role, created_at
+    (+ last_login은 AbstractBaseUser가 기본적으로 포함하지만, 사용하지 않아도 무방)
+    """
+    
     ROLE_CHOICES = (
         ('Customer', '고객'),
         ('ThemeManager', '테마 관리자'),
@@ -54,27 +51,40 @@ class Member(AbstractBaseUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='Customer', verbose_name="역할")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="가입일")
 
-    # Django Admin 및 인증 시스템에 필요한 필드
-    is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
-    is_staff = models.BooleanField(default=False) # Admin 페이지 접근 권한
-
     objects = MemberManager()
 
-    # 'login_id'를 사용자 식별 필드로 사용
     USERNAME_FIELD = 'login_id'
-    # 'createsuperuser' 시 필수로 받을 필드
     REQUIRED_FIELDS = ['name', 'phone']
 
     def __str__(self):
-        return f"[{self.get_role_display()}] {self.name} ({self.login_id})"
+        return f"[{self.get_role_display()}] {self.name}"
 
-    # Django 권한 시스템과 연동하기 위한 기본 메서드
+    # ----------------------------------------------------------------
+    # Django Admin 및 인증 시스템 호환을 위한 가상 필드 (Property)
+    # DB에는 저장되지 않고, 코드상에서만 role을 확인하여 작동함
+    # ----------------------------------------------------------------
+
+    @property
+    def is_staff(self):
+        """Admin, 지점/테마 관리자만 관리자 페이지 접속 가능"""
+        return self.role in ['Admin', 'ThemeManager', 'BranchManager']
+
+    @property
+    def is_superuser(self):
+        """Admin 역할만 모든 권한(슈퍼유저) 보유"""
+        return self.role == 'Admin'
+
+    @property
+    def is_active(self):
+        """별도 정지 로직이 없다면 항상 True 반환"""
+        return True
+
+    # 권한 확인 메서드
     def has_perm(self, perm, obj=None):
-        return self.is_admin
+        return self.is_superuser
 
     def has_module_perms(self, app_label):
-        return True
+        return self.is_superuser
 
 # ----------------------------------------------------------------------
 # 2. Branch (지점)

@@ -6,25 +6,25 @@ from . import models
 # 1. Member (회원)
 @admin.register(models.Member)
 class MemberAdmin(admin.ModelAdmin):
-    list_display = ('login_id', 'name', 'phone', 'role', 'is_active', 'created_at')
-    list_filter = ('role', 'is_active', 'created_at')
+    list_display = ('login_id', 'name', 'phone', 'role', 'created_at')
+    list_filter = ('role', 'created_at')
     search_fields = ('login_id', 'name', 'phone')
     ordering = ('-created_at',)
     
     # 읽기 전용 필드 (수정 불가)
-    readonly_fields = ('created_at', 'last_login')
+    readonly_fields = ('created_at', 'last_login', 'is_active', 'is_staff', 'is_superuser')
     
     # 필드 그룹화
     fieldsets = (
         ('기본 정보', {
             'fields': ('login_id', 'name', 'phone', 'role')
         }),
-        ('권한 및 상태', {
-            'fields': ('is_active', 'is_staff', 'is_admin')
+        ('권한 및 상태 (자동 설정)', {
+            'fields': ('is_active', 'is_staff', 'is_superuser')
         }),
         ('기타', {
             'fields': ('created_at', 'last_login'),
-            'classes': ('collapse',)  # 접을 수 있게
+            'classes': ('collapse',)
         }),
     )
 
