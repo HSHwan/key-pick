@@ -6,8 +6,8 @@ from . import models
 # 1. Member (회원)
 @admin.register(models.Member)
 class MemberAdmin(admin.ModelAdmin):
-    list_display = ('login_id', 'name', 'phone', 'role', 'is_active', 'created_at')
-    list_filter = ('role', 'is_active', 'created_at')
+    list_display = ('login_id', 'name', 'phone', 'role', 'created_at')
+    list_filter = ('role', 'created_at')
     search_fields = ('login_id', 'name', 'phone')
     ordering = ('-created_at',)
     
