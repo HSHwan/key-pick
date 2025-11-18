@@ -1,11 +1,11 @@
 # booking/forms.py
 from django import forms
-from .models import Review, Reservation
+from .models import Review, Reservation, IssueReport, Schedule, Branch
 
+# 1. 리뷰 폼
 class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
-        # 사용자에게 입력받을 필드만 지정
         fields = ['rating', 'comment']
         widgets = {
             'rating': forms.NumberInput(attrs={'min': 1, 'max': 5, 'class': 'form-control'}),
@@ -16,10 +16,10 @@ class ReviewForm(forms.ModelForm):
             'comment': '리뷰 내용',
         }
 
+# 2. 예약 폼
 class ReservationForm(forms.ModelForm):
     class Meta:
         model = Reservation
-        # 사용자로부터 예약 시간과 참가 인원만 입력받음
         fields = ['reservation_time', 'num_of_participants']
         widgets = {
             'reservation_time': forms.DateTimeInput(
@@ -32,4 +32,32 @@ class ReservationForm(forms.ModelForm):
         labels = {
             'reservation_time': '예약 날짜 및 시간',
             'num_of_participants': '참가 인원',
+        }
+
+# 3. 시설 문제 보고 폼 (이 부분이 누락되어 에러 발생)
+class IssueReportForm(forms.ModelForm):
+    class Meta:
+        model = IssueReport
+        fields = ['theme', 'issue_description']
+        widgets = {
+            'issue_description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': '문제 상황을 자세히 적어주세요.'}),
+            'theme': forms.Select(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'theme': '문제 발생 테마',
+            'issue_description': '내용',
+        }
+
+# 4. 스케줄 등록 폼
+class ScheduleForm(forms.ModelForm):
+    class Meta:
+        model = Schedule
+        fields = ['member', 'branch', 'work_date', 'start_time', 'end_time', 'assigned_theme']
+        widgets = {
+            'work_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'end_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'member': forms.Select(attrs={'class': 'form-control'}),
+            'branch': forms.Select(attrs={'class': 'form-control'}),
+            'assigned_theme': forms.Select(attrs={'class': 'form-control'}),
         }

@@ -9,7 +9,6 @@
     
     <hr>
     
-    <!-- 이번 달 매출 통계 -->
     <div class="sales-section">
         <h2>💰 이번 달 매출 통계 ({{ month_start|date:"Y.m.d" }} ~ {{ month_end|date:"Y.m.d" }})</h2>
         
@@ -32,7 +31,7 @@
                         <td style="padding: 12px; text-align: center;">{{ item.reservation_count }}건</td>
                         <td style="padding: 12px; text-align: right;">
                             {% if item.reservation_count > 0 %}
-                                {{ item.total_sales|divisibleby:item.reservation_count|floatformat:0 }}원
+                                {{ item.avg_sales|floatformat:0 }}원
                             {% else %}
                                 -
                             {% endif %}
@@ -45,9 +44,13 @@
     
     <hr style="margin-top: 40px;">
     
-    <!-- 이번 주 스케줄 -->
     <div class="schedule-section">
-        <h2>📅 이번 주 스케줄 ({{ week_start|date:"Y.m.d" }} ~ {{ week_end|date:"Y.m.d" }})</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>📅 이번 주 스케줄 ({{ week_start|date:"Y.m.d" }} ~ {{ week_end|date:"Y.m.d" }})</h2>
+            <a href="{% url 'schedule-create' %}" style="background: #007bff; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
+                + 근무 추가
+            </a>
+        </div>
         
         {% if schedules %}
             <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
@@ -87,7 +90,6 @@
     
     <hr style="margin-top: 40px;">
     
-    <!-- 테마별 예약 현황 (TOP 10) -->
     <div class="theme-stats-section">
         <h2>🏆 테마별 예약 현황 TOP 10 (이번 달)</h2>
         
