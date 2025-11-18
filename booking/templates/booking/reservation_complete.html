@@ -1,0 +1,27 @@
+{% extends 'booking/base.html' %}
+
+{% block content %}
+<div class="container">
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <h1>예약 완료</h1>
+    <p>예약이 성공적으로 완료되었습니다. 마이페이지에서 상세 내역을 확인할 수 있습니다.</p>
+    
+    <ul class="list-group">
+        <li class="list-group-item"><strong>예약 번호:</strong> {{ reservation.reservation_id }}</li>
+        <li class="list-group-item"><strong>테마:</strong> {{ reservation.theme.name }} ({{ reservation.theme.branch.branch_name }})</li>
+        <li class="list-group-item"><strong>예약 시간:</strong> {{ reservation.reservation_time|date:"Y년 m월 d일 H:i" }}</li>
+        <li class="list-group-item"><strong>참가 인원:</strong> {{ reservation.num_of_participants }}명</li>
+        <li class="list-group-item"><strong>최종 결제액:</strong> {{ reservation.total_price }}원</li>
+    </ul>
+    
+    <a href="{% url 'theme-list' %}" class="btn btn-primary mt-3">다른 테마 보러가기</a>
+    <a href="#" class="btn btn-secondary mt-3">마이페이지로 이동</a> </div>
+{% endblock %}

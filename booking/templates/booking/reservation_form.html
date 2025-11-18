@@ -1,0 +1,46 @@
+{% extends 'booking/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>'{{ theme.name }}' 예약하기</h1>
+    <p><strong>지점:</strong> {{ theme.branch.branch_name }}</p>
+    <p><strong>가격:</strong> {{ theme.price }}원 (1인 기준)</p>
+    
+    <hr>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group mb-3">
+            {{ form.reservation_time.label_tag }}
+            {{ form.reservation_time }}
+            {% if form.reservation_time.errors %}
+                <div class="invalid-feedback" style="color: red; display: block;">
+                    {{ form.reservation_time.errors|first }}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group mb-3">
+            {{ form.num_of_participants.label_tag }}
+            {{ form.num_of_participants }}
+             {% if form.num_of_participants.errors %}
+                <div class="invalid-feedback" style="color: red; display: block;">
+                    {{ form.num_of_participants.errors|first }}
+                </div>
+            {% endif %}
+        </div>
+        
+        <button type="submit" class="btn btn-success">예약 및 결제하기</button>
+    </form>
+    
+</div>
+{% endblock %}
