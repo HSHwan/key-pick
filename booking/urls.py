@@ -13,4 +13,5 @@ urlpatterns = [
     path('review/update/<int:review_id>/', views.review_update_view, name='review-update'),
     path('reservation/create/<int:theme_id>/', views.reservation_create_view, name='reservation-create'),
     path('reservation/complete/<int:reservation_id>/', views.reservation_complete_view, name='reservation-complete'),
+    path('reservation/cancel/<int:reservation_id>/', views.reservation_cancel_view, name='reservation-cancel'),
 ]

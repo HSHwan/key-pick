@@ -8,6 +8,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.utils import timezone
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 from .models import Theme, Branch, Member, Reservation, Review, Payment
 from .forms import ReviewForm, ReservationForm
 
@@ -364,3 +365,22 @@ def reservation_complete_view(request, reservation_id):
         'reservation': reservation,
     }
     return render(request, 'booking/reservation_complete.html', context)
+
+# 예약 취소 뷰
+@login_required
+@require_POST # POST 요청만 허용
+def reservation_cancel_view(request, reservation_id):
+    # 본인의 예약인지 확인
+    reservation = get_object_or_404(Reservation, reservation_id=reservation_id, member=request.user)
+    
+    # 이미 취소되었거나 완료된 예약인지 확인
+    if reservation.status != 'Confirmed':
+        messages.error(request, "취소할 수 없는 예약 상태입니다.")
+        return redirect('my-page') # 마이페이지 URL 이름 가정
+
+    # 상태 변경 (환불 로직은 여기에 추가 가능)
+    reservation.status = 'Cancelled'
+    reservation.save()
+    
+    messages.success(request, "예약이 취소되었습니다.")
+    return redirect('my-page') # 마이페이지로 리다이렉트

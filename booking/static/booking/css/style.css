@@ -37,3 +37,6 @@ a:hover .theme-card {
   transform: translateY(-2px);
   transition: all 0.2s ease-in-out;
 }
+.status-confirmed { color: green; font-weight: bold; }
+.status-cancelled { color: red; font-weight: bold; }
+.status-default { font-weight: bold; }
