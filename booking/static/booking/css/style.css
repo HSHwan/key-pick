@@ -1,4 +1,3 @@
-/* booking/static/booking/css/style.css */
 body {
   font-family: sans-serif;
   margin: 0;
@@ -32,4 +31,9 @@ body {
   margin-top: 30px;
   color: #888;
   font-size: 0.9em;
+}
+a:hover .theme-card {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+  transition: all 0.2s ease-in-out;
 }
