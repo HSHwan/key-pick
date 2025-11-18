@@ -1,0 +1,143 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}테마 관리자 대시보드{% endblock %}
+
+{% block content %}
+<div class="manager-dashboard">
+    <h1>📋 테마 관리자 대시보드</h1>
+    <p><strong>{{ user.name }}</strong>님 ({{ user.get_role_display }})</p>
+    <p>오늘 날짜: {{ today|date:"Y년 m월 d일" }}</p>
+    
+    <hr>
+    
+    <!-- 오늘의 예약 현황 통계 -->
+    <div class="stats-section" style="background: #f4f4f4; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        <h2>📊 오늘의 예약 현황</h2>
+        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px;">
+            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 2em; font-weight: bold; color: #333;">{{ stats.total }}</div>
+                <div style="color: #888;">전체 예약</div>
+            </div>
+            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 2em; font-weight: bold; color: #007bff;">{{ stats.confirmed }}</div>
+                <div style="color: #888;">예약 확정</div>
+            </div>
+            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 2em; font-weight: bold; color: #28a745;">{{ stats.checked_in }}</div>
+                <div style="color: #888;">입실 완료</div>
+            </div>
+            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 2em; font-weight: bold; color: #6c757d;">{{ stats.completed }}</div>
+                <div style="color: #888;">이용 완료</div>
+            </div>
+            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 2em; font-weight: bold; color: #dc3545;">{{ stats.cancelled }}</div>
+                <div style="color: #888;">취소</div>
+            </div>
+        </div>
+    </div>
+    
+    <hr>
+    
+    <!-- 오늘의 예약 목록 -->
+    <div class="reservation-list-section">
+        <h2>📅 오늘의 예약 목록</h2>
+        
+        {% if reservations %}
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <thead style="background: #333; color: white;">
+                    <tr>
+                        <th style="padding: 10px; text-align: left;">예약 번호</th>
+                        <th style="padding: 10px; text-align: left;">시간</th>
+                        <th style="padding: 10px; text-align: left;">테마</th>
+                        <th style="padding: 10px; text-align: left;">지점</th>
+                        <th style="padding: 10px; text-align: left;">예약자</th>
+                        <th style="padding: 10px; text-align: center;">인원</th>
+                        <th style="padding: 10px; text-align: center;">상태</th>
+                        <th style="padding: 10px; text-align: center;">관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations %}
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 10px;">{{ reservation.reservation_id }}</td>
+                            <td style="padding: 10px;">{{ reservation.reservation_time|date:"H:i" }}</td>
+                            <td style="padding: 10px;"><strong>{{ reservation.theme.name }}</strong></td>
+                            <td style="padding: 10px;">{{ reservation.theme.branch.branch_name }}</td>
+                            <td style="padding: 10px;">{{ reservation.member.name|default:"탈퇴회원" }}</td>
+                            <td style="padding: 10px; text-align: center;">{{ reservation.num_of_participants }}명</td>
+                            <td style="padding: 10px; text-align: center;">
+                                {% if reservation.status == 'Confirmed' %}
+                                    <span style="color: #007bff; font-weight: bold;">● {{ reservation.get_status_display }}</span>
+                                {% elif reservation.status == 'CheckedIn' %}
+                                    <span style="color: #28a745; font-weight: bold;">● {{ reservation.get_status_display }}</span>
+                                {% elif reservation.status == 'Completed' %}
+                                    <span style="color: #6c757d; font-weight: bold;">● {{ reservation.get_status_display }}</span>
+                                {% elif reservation.status == 'Cancelled' %}
+                                    <span style="color: #dc3545; font-weight: bold;">● {{ reservation.get_status_display }}</span>
+                                {% else %}
+                                    <span style="color: #ffc107; font-weight: bold;">● {{ reservation.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 10px; text-align: center;">
+                                {% if reservation.status == 'Confirmed' %}
+                                    <a href="{% url 'checkin-update' reservation.reservation_id %}" 
+                                       style="background: #28a745; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9em;">
+                                        입실 처리
+                                    </a>
+                                {% elif reservation.status == 'CheckedIn' %}
+                                    <a href="{% url 'complete-reservation' reservation.reservation_id %}" 
+                                       style="background: #007bff; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9em;">
+                                        완료 처리
+                                    </a>
+                                {% else %}
+                                    <span style="color: #888;">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="margin-top: 20px; color: #888;">오늘 예약된 건이 없습니다.</p>
+        {% endif %}
+    </div>
+    
+    <hr style="margin-top: 40px;">
+    
+    <!-- 최근 문제 보고 -->
+    <div class="issue-report-section">
+        <h2>🚨 최근 문제 보고 (미해결)</h2>
+        
+        {% if recent_issues %}
+            <div style="margin-top: 20px;">
+                {% for issue in recent_issues %}
+                    <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div>
+                                <strong style="font-size: 1.1em;">{{ issue.theme.name }}</strong>
+                                <span style="color: #888; font-size: 0.9em;">({{ issue.theme.branch.branch_name }})</span>
+                            </div>
+                            <div>
+                                {% if issue.status == 'Reported' %}
+                                    <span style="color: #dc3545; font-weight: bold;">● 보고됨</span>
+                                {% elif issue.status == 'InProgress' %}
+                                    <span style="color: #ffc107; font-weight: bold;">● 처리 중</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p style="margin: 10px 0; color: #555;">{{ issue.issue_description }}</p>
+                        <div style="font-size: 0.9em; color: #888;">
+                            보고자: {{ issue.reported_by_member.name|default:"시스템" }} | 
+                            보고 시간: {{ issue.reported_at|date:"Y.m.d H:i" }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="margin-top: 20px; color: #888;">미해결 문제 보고가 없습니다.</p>
+        {% endif %}
+    </div>
+    
+</div>
+{% endblock %}
