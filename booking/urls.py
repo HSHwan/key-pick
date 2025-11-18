@@ -1,9 +1,12 @@
 # booking/urls.py
 from django.urls import path
-from django.contrib.auth import views as auth_views # [필수] 비밀번호 기능을 위해 추가
+from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
+    #메인 페이지 (접속 시 바로 테마 목록 보여주기)
+    path('', views.theme_list_view, name='root'),
+
     # 회원가입 및 로그인
     path('signup/', views.signup_view, name='signup'),
     path('login/', views.login_view, name='login'),
@@ -21,11 +24,13 @@ urlpatterns = [
     path('reservation/complete/<int:reservation_id>/', views.reservation_complete_view, name='reservation-complete'),
     path('reservation/cancel/<int:reservation_id>/', views.reservation_cancel_view, name='reservation-cancel'),
     
-    # 관리자 대시보드
+    # 관리자 대시보드 (기본)
     path('manager/dashboard/', views.theme_manager_dashboard_view, name='theme-manager-dashboard'),
     path('manager/stats/', views.branch_manager_dashboard_view, name='branch-manager-stats'),
     path('manager/checkin/<int:reservation_id>/', views.checkin_update_view, name='checkin-update'),
     path('manager/complete/<int:reservation_id>/', views.complete_reservation_view, name='complete-reservation'),
+    
+    # 관리자 추가
     path('manager/noshow/<int:reservation_id>/', views.noshow_update_view, name='noshow-update'),
     path('manager/issue/create/', views.issue_create_view, name='issue-create'),
     path('manager/schedule/create/', views.schedule_create_view, name='schedule-create'),

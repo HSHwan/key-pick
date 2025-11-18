@@ -2,10 +2,10 @@
 from django import forms
 from .models import Review, Reservation, IssueReport, Schedule, Branch
 
+# 1. 리뷰 폼
 class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
-        # 사용자에게 입력받을 필드만 지정
         fields = ['rating', 'comment']
         widgets = {
             'rating': forms.NumberInput(attrs={'min': 1, 'max': 5, 'class': 'form-control'}),
@@ -16,6 +16,7 @@ class ReviewForm(forms.ModelForm):
             'comment': '리뷰 내용',
         }
 
+# 2. 예약 폼
 class ReservationForm(forms.ModelForm):
     class Meta:
         model = Reservation
@@ -33,6 +34,7 @@ class ReservationForm(forms.ModelForm):
             'num_of_participants': '참가 인원',
         }
 
+# 3. 시설 문제 보고 폼
 class IssueReportForm(forms.ModelForm):
     class Meta:
         model = IssueReport
@@ -46,6 +48,7 @@ class IssueReportForm(forms.ModelForm):
             'issue_description': '내용',
         }
 
+# 4. 스케줄 등록 폼
 class ScheduleForm(forms.ModelForm):
     class Meta:
         model = Schedule

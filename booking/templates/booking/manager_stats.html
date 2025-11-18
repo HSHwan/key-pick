@@ -5,75 +5,127 @@
 
   <hr />
 
-  <div class="sales-section">
-    <h2>
-      💰 이번 달 매출 통계 ({{ month_start|date:"Y.m.d" }} ~ {{
-      month_end|date:"Y.m.d" }})
-    </h2>
-
-    <table style="width: 100%; border-collapse: collapse; margin-top: 20px">
-      <thead style="background: #333; color: white">
-        <tr>
-          <th style="padding: 12px; text-align: left">지점명</th>
-          <th style="padding: 12px; text-align: right">총 매출</th>
-          <th style="padding: 12px; text-align: center">예약 건수</th>
-          <th style="padding: 12px; text-align: right">평균 객단가</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in branch_sales %}
-        <tr style="border-bottom: 1px solid #ddd">
-          <td style="padding: 12px">
-            <strong>{{ item.branch.branch_name }}</strong>
-          </td>
-          <td
-            style="
-              padding: 12px;
-              text-align: right;
-              font-weight: bold;
-              color: #28a745;
-            "
-          >
-            {{ item.total_sales|floatformat:0 }}원
-          </td>
-          <td style="padding: 12px; text-align: center">
-            {{ item.reservation_count }}건
-          </td>
-          <td style="padding: 12px; text-align: right">
-            {% if item.reservation_count > 0 %} {{
-            item.total_sales|divisibleby:item.reservation_count|floatformat:0
-            }}원 {% else %} - {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <hr style="margin-top: 40px" />
-
-  <div class="schedule-section">
-    <div
-      style="display: flex; justify-content: space-between; align-items: center"
-    >
-      <h2>
-        📅 이번 주 스케줄 ({{ week_start|date:"Y.m.d" }} ~ {{
-        week_end|date:"Y.m.d" }})
-      </h2>
-      <a
-        href="{% url 'schedule-create' %}"
-        style="
-          background: #007bff;
-          color: white;
-          padding: 8px 15px;
-          border-radius: 4px;
-          text-decoration: none;
-          font-weight: bold;
-          font-size: 0.9em;
-        "
-      >
-        + 근무 추가
-      </a>
+{% block content %}
+<div class="branch-manager-dashboard">
+    <h1>📊 지점 관리자 대시보드</h1>
+    <p><strong>{{ user.name }}</strong>님 ({{ user.get_role_display }})</p>
+    
+    <hr>
+    
+    <div class="sales-section">
+        <h2>💰 이번 달 매출 통계 ({{ month_start|date:"Y.m.d" }} ~ {{ month_end|date:"Y.m.d" }})</h2>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <thead style="background: #333; color: white;">
+                <tr>
+                    <th style="padding: 12px; text-align: left;">지점명</th>
+                    <th style="padding: 12px; text-align: right;">총 매출</th>
+                    <th style="padding: 12px; text-align: center;">예약 건수</th>
+                    <th style="padding: 12px; text-align: right;">평균 객단가</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in branch_sales %}
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 12px;"><strong>{{ item.branch.branch_name }}</strong></td>
+                        <td style="padding: 12px; text-align: right; font-weight: bold; color: #28a745;">
+                            {{ item.total_sales|floatformat:0 }}원
+                        </td>
+                        <td style="padding: 12px; text-align: center;">{{ item.reservation_count }}건</td>
+                        <td style="padding: 12px; text-align: right;">
+                            {% if item.reservation_count > 0 %}
+                                {{ item.avg_sales|floatformat:0 }}원
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <hr style="margin-top: 40px;">
+    
+    <div class="schedule-section">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>📅 이번 주 스케줄 ({{ week_start|date:"Y.m.d" }} ~ {{ week_end|date:"Y.m.d" }})</h2>
+            <a href="{% url 'schedule-create' %}" style="background: #007bff; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
+                + 근무 추가
+            </a>
+        </div>
+        
+        {% if schedules %}
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <thead style="background: #007bff; color: white;">
+                    <tr>
+                        <th style="padding: 10px; text-align: left;">날짜</th>
+                        <th style="padding: 10px; text-align: left;">직원</th>
+                        <th style="padding: 10px; text-align: left;">지점</th>
+                        <th style="padding: 10px; text-align: center;">근무 시간</th>
+                        <th style="padding: 10px; text-align: left;">배정 테마</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for schedule in schedules %}
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 10px;">{{ schedule.work_date|date:"Y.m.d (D)" }}</td>
+                            <td style="padding: 10px;"><strong>{{ schedule.member.name }}</strong></td>
+                            <td style="padding: 10px;">{{ schedule.branch.branch_name }}</td>
+                            <td style="padding: 10px; text-align: center;">
+                                {{ schedule.start_time|time:"H:i" }} ~ {{ schedule.end_time|time:"H:i" }}
+                            </td>
+                            <td style="padding: 10px;">
+                                {% if schedule.assigned_theme %}
+                                    {{ schedule.assigned_theme.name }}
+                                {% else %}
+                                    <span style="color: #888;">미배정</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="margin-top: 20px; color: #888;">이번 주 스케줄이 없습니다.</p>
+        {% endif %}
+    </div>
+    
+    <hr style="margin-top: 40px;">
+    
+    <div class="theme-stats-section">
+        <h2>🏆 테마별 예약 현황 TOP 10 (이번 달)</h2>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <thead style="background: #28a745; color: white;">
+                <tr>
+                    <th style="padding: 10px; text-align: center;">순위</th>
+                    <th style="padding: 10px; text-align: left;">테마명</th>
+                    <th style="padding: 10px; text-align: left;">지점</th>
+                    <th style="padding: 10px; text-align: center;">완료 예약 수</th>
+                    <th style="padding: 10px; text-align: center;">평균 별점</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for theme in theme_stats %}
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 10px; text-align: center; font-weight: bold;">{{ forloop.counter }}</td>
+                        <td style="padding: 10px;"><strong>{{ theme.name }}</strong></td>
+                        <td style="padding: 10px;">{{ theme.branch.branch_name }}</td>
+                        <td style="padding: 10px; text-align: center; font-size: 1.1em; color: #007bff;">
+                            {{ theme.reservation_count }}건
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            {% if theme.avg_rating %}
+                                <span style="color: #ffc107;">⭐ {{ theme.avg_rating|floatformat:1 }}</span>
+                            {% else %}
+                                <span style="color: #888;">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
     {% if schedules %}

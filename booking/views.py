@@ -138,13 +138,10 @@ def my_page_view(request):
     }
     return render(request, 'booking/my_page.html', context)
 
-# 예약 생성 뷰
-@login_required # 로그인 필수
-@transaction.atomic # 트랜잭션 보장 (예약/결제 로직)
+# 3. 예약 (Reservation)
+@login_required
+@transaction.atomic
 def reservation_create_view(request, theme_id):
-    """
-    테마 예약 및 결제 처리 뷰 (GET: 폼, POST: 처리)
-    """
     theme = get_object_or_404(Theme, theme_id=theme_id, is_active=True, status='Ready')
     
     if request.method == 'POST':
@@ -153,60 +150,48 @@ def reservation_create_view(request, theme_id):
             reservation_time = form.cleaned_data['reservation_time']
             num_of_participants = form.cleaned_data['num_of_participants']
 
-            # --- 유효성 검사 (Validation) ---
-            # 1. 과거 시간 검사
             if reservation_time < timezone.now():
                 messages.error(request, '예약 시간은 현재 시간보다 이후여야 합니다.')
                 form.add_error('reservation_time', '지난 시간은 예약할 수 없습니다.')
                 
-            # 2. 중복 예약 검사 (DB에서 해당 테마, 해당 시간에 확정된 예약이 있는지 확인)
             existing_reservation = Reservation.objects.filter(
                 theme=theme,
                 reservation_time=reservation_time,
-                status__in=['Confirmed', 'CheckedIn'] # '확정' 또는 '입실' 상태
+                status__in=['Confirmed', 'CheckedIn']
             ).exists()
             
             if existing_reservation:
                 messages.error(request, '해당 시간은 이미 예약이 마감되었습니다.')
                 form.add_error('reservation_time', '이미 예약된 시간입니다.')
 
-            # 폼 유효성 검사 실패 시, 폼과 에러 메시지를 다시 렌더링
             if form.errors:
                  context = {'form': form, 'theme': theme}
                  return render(request, 'booking/reservation_form.html', context)
 
-            # --- 트랜잭션 시작 (모두 성공 또는 모두 실패) ---
             try:
-                # 1. Reservation 객체 생성 (아직 DB 저장X)
                 reservation = form.save(commit=False)
                 reservation.member = request.user
                 reservation.theme = theme
                 
-                # 2. 총 가격 계산 (기본 가격 * 인원)
                 total_price = theme.price * num_of_participants
                 reservation.total_price = total_price
                 
-                # 3. 예약 저장 (Reservation INSERT)
                 reservation.save()
                 
-                # 4. Payment 객체 생성 (가상 결제 처리)
-                # (실제 프로젝트에서는 여기서 PG사 API를 호출하고 콜백을 받음)
                 Payment.objects.create(
                     reservation=reservation,
-                    payment_method='가상 카드', # 실제로는 PG사에서 받은 정보
+                    payment_method='가상 카드',
                     amount=total_price,
                     payment_status='Paid'
                 )
                 
-                # 5. 성공 메시지 및 완료 페이지로 리다이렉트
                 messages.success(request, f'"{theme.name}" 예약이 완료되었습니다.')
                 return redirect('reservation-complete', reservation_id=reservation.reservation_id)
             
             except Exception as e:
-                # 트랜잭션 중 오류 발생 시 롤백(Rollback)됨
                 messages.error(request, f'예약 중 오류가 발생했습니다. (Error: {e})')
                 
-    else: # GET 요청 시 (예약하기 버튼 클릭)
+    else:
         form = ReservationForm()
     
     context = {
@@ -215,13 +200,8 @@ def reservation_create_view(request, theme_id):
     }
     return render(request, 'booking/reservation_form.html', context)
 
-# 예약 완료 뷰
 @login_required
 def reservation_complete_view(request, reservation_id):
-    """
-    예약 완료 후 보여줄 확인 페이지
-    """
-    # 본인의 예약만 조회 가능하도록 `member=request.user` 조건 추가
     reservation = get_object_or_404(
         Reservation, 
         reservation_id=reservation_id, 
@@ -232,19 +212,15 @@ def reservation_complete_view(request, reservation_id):
     }
     return render(request, 'booking/reservation_complete.html', context)
 
-# 예약 취소 뷰
 @login_required
-@require_POST # POST 요청만 허용
+@require_POST
 def reservation_cancel_view(request, reservation_id):
-    # 본인의 예약인지 확인
     reservation = get_object_or_404(Reservation, reservation_id=reservation_id, member=request.user)
     
-    # 이미 취소되었거나 완료된 예약인지 확인
     if reservation.status != 'Confirmed':
         messages.error(request, "취소할 수 없는 예약 상태입니다.")
-        return redirect('my-page') # 마이페이지 URL 이름 가정
+        return redirect('my-page')
 
-    # 상태 변경 (환불 로직은 여기에 추가 가능)
     reservation.status = 'Cancelled'
     reservation.save()
     
@@ -387,10 +363,19 @@ def branch_manager_dashboard_view(request):
             count=Count('payment_id')
         )
         
+        # 0으로 나누기 방지 및 평균 계산 (템플릿 계산 오류 해결)
+        total = sales['total'] or 0
+        count = sales['count'] or 0
+        if count > 0:
+            avg_sales = total / count
+        else:
+            avg_sales = 0
+
         branch_sales.append({
             'branch': branch,
-            'total_sales': sales['total'] or 0,
-            'reservation_count': sales['count'] or 0,
+            'total_sales': total,
+            'reservation_count': count,
+            'avg_sales': avg_sales,
         })
     
     week_start = today
@@ -513,6 +498,7 @@ def schedule_create_view(request):
         form = ScheduleForm(request.POST)
         if form.is_valid():
             schedule = form.save(commit=False)
+            # 지점 정보가 없으면 첫 번째 활성 지점으로 자동 할당
             if not schedule.branch_id:
                  first_branch = Branch.objects.filter(is_active=True).first()
                  if first_branch:
