@@ -1,0 +1,43 @@
+{% extends 'booking/base.html' %} {% block title %}시설 문제 보고{% endblock %}
+{% block content %}
+<div class="container" style="max-width: 600px">
+  <h2>🚨 시설 문제 보고</h2>
+  <hr />
+  <form method="POST">
+    {% csrf_token %}
+    <div class="form-group mb-3">
+      <label style="font-weight: bold; display: block; margin-bottom: 5px"
+        >{{ form.theme.label }}</label
+      >
+      {{ form.theme }}
+    </div>
+    <div class="form-group mb-3">
+      <label style="font-weight: bold; display: block; margin-bottom: 5px"
+        >{{ form.issue_description.label }}</label
+      >
+      {{ form.issue_description }}
+    </div>
+
+    <div style="margin-top: 20px">
+      <button
+        type="submit"
+        style="
+          background: #dc3545;
+          color: white;
+          padding: 10px 20px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        "
+      >
+        보고하기
+      </button>
+      <a
+        href="{% url 'theme-manager-dashboard' %}"
+        style="color: #666; margin-left: 10px; text-decoration: none"
+        >취소</a
+      >
+    </div>
+  </form>
+</div>
+{% endblock %}

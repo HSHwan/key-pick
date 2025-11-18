@@ -34,7 +34,7 @@ class ReservationForm(forms.ModelForm):
             'num_of_participants': '참가 인원',
         }
 
-# 3. 시설 문제 보고 폼 (이 부분이 누락되어 에러 발생)
+# 3. 시설 문제 보고 폼
 class IssueReportForm(forms.ModelForm):
     class Meta:
         model = IssueReport

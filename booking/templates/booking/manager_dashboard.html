@@ -9,7 +9,7 @@
     <p>오늘 날짜: {{ today|date:"Y년 m월 d일" }}</p>
     
     <hr>
-    
+
     <!-- 오늘의 예약 현황 통계 -->
     <div class="stats-section" style="background: #f4f4f4; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
         <h2>📊 오늘의 예약 현황</h2>
@@ -85,6 +85,7 @@
                                        style="background: #28a745; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9em;">
                                         입실 처리
                                     </a>
+                                    <a href="{% url 'noshow-update' reservation.reservation_id %}" class="btn-sm" style="background: #dc3545; color: white; padding: 5px; text-decoration: none;" onclick="return confirm('노쇼 처리 하시겠습니까?')">노쇼</a>
                                 {% elif reservation.status == 'CheckedIn' %}
                                     <a href="{% url 'complete-reservation' reservation.reservation_id %}" 
                                        style="background: #007bff; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9em;">
@@ -108,7 +109,9 @@
     <!-- 최근 문제 보고 -->
     <div class="issue-report-section">
         <h2>🚨 최근 문제 보고 (미해결)</h2>
-        
+        <a href="{% url 'issue-create' %}" class="btn" style="background: #ffc107; padding: 8px 15px; border-radius: 4px; text-decoration: none; color: black; font-weight: bold;">
+            + 새 문제 보고
+        </a>
         {% if recent_issues %}
             <div style="margin-top: 20px;">
                 {% for issue in recent_issues %}
@@ -138,6 +141,24 @@
             <p style="margin-top: 20px; color: #888;">미해결 문제 보고가 없습니다.</p>
         {% endif %}
     </div>
-    
+
+    <div class="issue-report-form-section" style="background: #fff3cd; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        <h3>📝 시설 문제 보고하기</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <div style="flex: 1;">
+                    {{ issue_form.theme.label_tag }}
+                    {{ issue_form.theme }}
+                </div>
+            </div>
+            <div style="margin-bottom: 10px;">
+                {{ issue_form.issue_description.label_tag }}
+                {{ issue_form.issue_description }}
+            </div>
+            <button type="submit" style="background: #ffc107; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px;">보고 등록</button>
+        </form>
+    </div>
+
 </div>
 {% endblock %}
