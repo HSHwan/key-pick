@@ -14,4 +14,8 @@ urlpatterns = [
     path('reservation/create/<int:theme_id>/', views.reservation_create_view, name='reservation-create'),
     path('reservation/complete/<int:reservation_id>/', views.reservation_complete_view, name='reservation-complete'),
     path('reservation/cancel/<int:reservation_id>/', views.reservation_cancel_view, name='reservation-cancel'),
+    path('manager/dashboard/', views.theme_manager_dashboard_view, name='theme-manager-dashboard'),
+    path('manager/stats/', views.branch_manager_dashboard_view, name='branch-manager-stats'),
+    path('manager/checkin/<int:reservation_id>/', views.checkin_update_view, name='checkin-update'),
+    path('manager/complete/<int:reservation_id>/', views.complete_reservation_view, name='complete-reservation'),
 ]

@@ -1,7 +1,7 @@
 # booking/views.py
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Q 
+from django.db.models import Count, Sum, Q, Avg 
 from django.contrib.auth import logout, login, authenticate
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.exceptions import PermissionDenied
@@ -9,8 +9,9 @@ from django.http import Http404
 from django.utils import timezone
 from django.contrib import messages
 from django.views.decorators.http import require_POST
-from .models import Theme, Branch, Member, Reservation, Review, Payment
 from .forms import ReviewForm, ReservationForm
+from .models import Theme, Branch, Member, Reservation, Review, IssueReport, Payment, Schedule
+from datetime import date, timedelta
 
 # 테마 목록 뷰
 def theme_list_view(request):
@@ -384,3 +385,188 @@ def reservation_cancel_view(request, reservation_id):
     
     messages.success(request, "예약이 취소되었습니다.")
     return redirect('my-page') # 마이페이지로 리다이렉트
+
+@login_required
+def theme_manager_dashboard_view(request):
+    """
+    테마 관리자 대시보드
+    - 오늘 예약 현황 조회
+    - 입실 관리 (예약 상태 변경)
+    - 시설 문제 보고
+    """
+    # 권한 확인
+    if request.user.role not in ['ThemeManager', 'BranchManager', 'Admin']:
+        raise PermissionDenied("테마 관리자 권한이 필요합니다.")
+    
+    # 오늘 날짜
+    today = date.today()
+    
+    # 오늘의 예약 목록 (지점 관리자는 자신의 지점만, 관리자는 전체)
+    if request.user.role == 'BranchManager':
+        # 지점 관리자: 자신이 관리하는 지점의 예약만
+        # (실제로는 Member 모델에 managed_branch 필드가 필요하지만, 여기서는 간단히 처리)
+        reservations = Reservation.objects.filter(
+            reservation_time__date=today
+        ).select_related('member', 'theme', 'theme__branch').order_by('reservation_time')
+    else:
+        # 테마 관리자 또는 Admin: 전체 예약
+        reservations = Reservation.objects.filter(
+            reservation_time__date=today
+        ).select_related('member', 'theme', 'theme__branch').order_by('reservation_time')
+    
+    # 예약 상태별 통계
+    stats = {
+        'total': reservations.count(),
+        'confirmed': reservations.filter(status='Confirmed').count(),
+        'checked_in': reservations.filter(status='CheckedIn').count(),
+        'completed': reservations.filter(status='Completed').count(),
+        'cancelled': reservations.filter(status='Cancelled').count(),
+    }
+    
+    # 최근 문제 보고 (미해결 건만)
+    recent_issues = IssueReport.objects.filter(
+        status__in=['Reported', 'InProgress']
+    ).select_related('theme', 'reported_by_member').order_by('-reported_at')[:5]
+    
+    context = {
+        'reservations': reservations,
+        'stats': stats,
+        'recent_issues': recent_issues,
+        'today': today,
+    }
+    
+    return render(request, 'booking/manager_dashboard.html', context)
+
+
+@login_required
+def branch_manager_dashboard_view(request):
+    """
+    지점 관리자 대시보드
+    - 지점 매출 통계
+    - 스케줄 관리
+    - 테마별 예약 현황
+    """
+    # 권한 확인
+    if request.user.role not in ['BranchManager', 'Admin']:
+        raise PermissionDenied("지점 관리자 권한이 필요합니다.")
+    
+    # 이번 달 시작/종료 날짜
+    today = date.today()
+    month_start = today.replace(day=1)
+    if today.month == 12:
+        month_end = today.replace(year=today.year + 1, month=1, day=1) - timedelta(days=1)
+    else:
+        month_end = today.replace(month=today.month + 1, day=1) - timedelta(days=1)
+    
+    # 전체 지점 목록
+    branches = Branch.objects.filter(is_active=True)
+    
+    # 이번 달 매출 통계 (지점별)
+    branch_sales = []
+    for branch in branches:
+        sales = Payment.objects.filter(
+            reservation__theme__branch=branch,
+            payment_status='Paid',
+            paid_at__date__gte=month_start,
+            paid_at__date__lte=month_end
+        ).aggregate(
+            total=Sum('amount'),
+            count=Count('payment_id')
+        )
+        
+        branch_sales.append({
+            'branch': branch,
+            'total_sales': sales['total'] or 0,
+            'reservation_count': sales['count'] or 0,
+        })
+    
+    # 이번 주 스케줄 (오늘부터 7일)
+    week_start = today
+    week_end = today + timedelta(days=7)
+    
+    schedules = Schedule.objects.filter(
+        work_date__gte=week_start,
+        work_date__lte=week_end
+    ).select_related('member', 'branch', 'assigned_theme').order_by('work_date', 'start_time')
+    
+    # 테마별 예약 현황 (이번 달)
+    theme_stats = Theme.objects.filter(
+        is_active=True
+    ).annotate(
+        reservation_count=Count(
+            'reservation',
+            filter=Q(
+                reservation__reservation_time__date__gte=month_start,
+                reservation__reservation_time__date__lte=month_end,
+                reservation__status='Completed'
+            )
+        ),
+        avg_rating=Avg(
+            'reservation__review__rating',
+            filter=Q(reservation__status='Completed')
+        )
+    ).order_by('-reservation_count')[:10]
+    
+    context = {
+        'branch_sales': branch_sales,
+        'schedules': schedules,
+        'theme_stats': theme_stats,
+        'month_start': month_start,
+        'month_end': month_end,
+        'week_start': week_start,
+        'week_end': week_end,
+    }
+    
+    return render(request, 'booking/manager_stats.html', context)
+
+
+@login_required
+def checkin_update_view(request, reservation_id):
+    """
+    예약 상태를 '입실 완료'로 변경
+    """
+    if request.user.role not in ['ThemeManager', 'BranchManager', 'Admin']:
+        raise PermissionDenied("테마 관리자 권한이 필요합니다.")
+    
+    reservation = get_object_or_404(Reservation, reservation_id=reservation_id)
+    
+    if reservation.status == 'Confirmed':
+        reservation.status = 'CheckedIn'
+        reservation.save()
+    
+    return redirect('theme-manager-dashboard')
+
+
+@login_required
+def complete_reservation_view(request, reservation_id):
+    """
+    예약을 '이용 완료' 상태로 변경
+    (힌트 사용 횟수, 탈출 성공 여부, 클리어 시간 입력)
+    """
+    if request.user.role not in ['ThemeManager', 'BranchManager', 'Admin']:
+        raise PermissionDenied("테마 관리자 권한이 필요합니다.")
+    
+    reservation = get_object_or_404(Reservation, reservation_id=reservation_id)
+    
+    if request.method == 'POST':
+        hint_count = request.POST.get('hint_count', 0)
+        is_success = request.POST.get('is_success') == 'on'
+        clear_time = request.POST.get('clear_time', None)
+        
+        reservation.status = 'Completed'
+        reservation.hint_count = int(hint_count)
+        reservation.is_success = is_success
+        
+        if clear_time:
+            # 분 단위로 받아서 초 단위로 저장
+            reservation.clear_time = int(clear_time) * 60
+        
+        reservation.save()
+        
+        return redirect('theme-manager-dashboard')
+    
+    context = {
+        'reservation': reservation,
+    }
+    
+    return render(request, 'booking/complete_reservation.html', context)
