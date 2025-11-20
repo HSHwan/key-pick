@@ -1,6 +1,6 @@
 # booking/forms.py
 from django import forms
-from .models import Review, Reservation, IssueReport, Schedule, Branch
+from .models import Review, Reservation, IssueReport, Schedule, Theme
 
 # 1. 리뷰 폼
 class ReviewForm(forms.ModelForm):
@@ -60,4 +60,21 @@ class ScheduleForm(forms.ModelForm):
             'member': forms.Select(attrs={'class': 'form-control'}),
             'branch': forms.Select(attrs={'class': 'form-control'}),
             'assigned_theme': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+# 5. 지점 관리자용 테마 수정 폼
+class BranchThemeUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Theme
+        fields = ['price', 'discount_rate', 'status', 'is_active']
+        widgets = {
+            'price': forms.NumberInput(attrs={'class': 'form-control'}),
+            'discount_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'price': '기본 가격',
+            'discount_rate': '할인율 (%)',
+            'status': '운영 상태',
+            'is_active': '활성화 여부'
         }
