@@ -19,8 +19,13 @@ from .forms import ReviewForm, ReservationForm, IssueReportForm, ScheduleForm
 def theme_list_view(request):
     search_query = request.GET.get('search_query', '')
     branch_id = request.GET.get('branch', '')
+    sort_by = request.GET.get('sort', 'latest')
     
-    themes = Theme.objects.filter(is_active=True, status='Ready')
+    # 기본 쿼리셋 (평점 평균과 리뷰 개수 계산 포함)
+    themes = Theme.objects.filter(is_active=True, status='Ready').annotate(
+        avg_rating=Avg('reservation__review__rating'),
+        review_count=Count('reservation__review')
+    )
     
     if search_query:
         themes = themes.filter(
@@ -30,6 +35,13 @@ def theme_list_view(request):
     if branch_id:
         themes = themes.filter(branch_id=branch_id)
         
+    if sort_by == 'rating':
+        themes = themes.order_by('-avg_rating')
+    elif sort_by == 'reviews':
+        themes = themes.order_by('-review_count')
+    else:
+        themes = themes.order_by('-theme_id')
+        
     branches = Branch.objects.filter(is_active=True)
 
     context = {
@@ -37,6 +49,7 @@ def theme_list_view(request):
         'branches': branches,
         'selected_branch': branch_id,
         'search_query': search_query,
+        'sort_by': sort_by,
     }
     return render(request, 'booking/theme_list.html', context)
 
