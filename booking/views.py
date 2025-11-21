@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from datetime import date, timedelta
 
 # 모델과 폼 import
-from .models import Theme, Branch, Member, Reservation, Review, IssueReport, Payment, Schedule, Notice
+from .models import *
 from .forms import ReviewForm, ReservationForm, IssueReportForm, ScheduleForm, BranchThemeUpdateForm
 
 # 1. 메인 & 테마 (Theme)
