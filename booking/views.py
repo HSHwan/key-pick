@@ -12,8 +12,8 @@ from django.views.decorators.http import require_POST
 from datetime import date, timedelta
 
 # 모델과 폼 import
-from .models import Theme, Branch, Member, Reservation, Review, IssueReport, Payment, Schedule, Notice
-from .forms import ReviewForm, ReservationForm, IssueReportForm, ScheduleForm
+from .models import *
+from .forms import ReviewForm, ReservationForm, IssueReportForm, ScheduleForm, BranchThemeUpdateForm
 
 # 1. 메인 & 테마 (Theme)
 def theme_list_view(request):
@@ -427,6 +427,35 @@ def branch_manager_dashboard_view(request):
     }
     
     return render(request, 'booking/manager_stats.html', context)
+
+@login_required
+def branch_theme_update_view(request, theme_id):
+    if request.user.role not in ['BranchManager', 'Admin']:
+        raise PermissionDenied("지점 관리자 권한이 필요합니다.")
+        
+    theme = get_object_or_404(Theme, theme_id=theme_id)
+    
+    # 담당 지점인지 확인
+    if request.user.role == 'BranchManager':
+        has_permission = BranchAssignment.objects.filter(
+            member=request.user,
+            branch=theme.branch
+        ).exists()
+        
+        if not has_permission:
+            raise PermissionDenied("본인이 담당하는 지점의 테마만 수정할 수 있습니다.")
+
+    if request.method == 'POST':
+        form = BranchThemeUpdateForm(request.POST, instance=theme)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "테마 정보가 수정되었습니다.")
+            return redirect('branch-manager-stats')
+    else:
+        form = BranchThemeUpdateForm(instance=theme)
+        
+    context = {'form': form, 'theme': theme}
+    return render(request, 'booking/theme_update_form.html', context)
 
 # 6. 관리자 액션 (입실, 완료, 노쇼, 문제 보고, 스케줄 추가)
 @login_required
