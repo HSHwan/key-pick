@@ -29,6 +29,7 @@ urlpatterns = [
     path('manager/stats/', views.branch_manager_dashboard_view, name='branch-manager-stats'),
     path('manager/checkin/<int:reservation_id>/', views.checkin_update_view, name='checkin-update'),
     path('manager/complete/<int:reservation_id>/', views.complete_reservation_view, name='complete-reservation'),
+    path('manager/theme/update/<int:theme_id>/', views.branch_theme_update_view, name='branch-theme-update'),
     
     # 관리자 추가
     path('manager/noshow/<int:reservation_id>/', views.noshow_update_view, name='noshow-update'),
