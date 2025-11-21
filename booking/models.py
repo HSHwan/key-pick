@@ -235,3 +235,20 @@ class IssueReport(models.Model):
 
     def __str__(self):
         return f"Issue in {self.theme.name} ({self.get_status_display()})"
+
+# ----------------------------------------------------------------------
+# 10. BranchAssignment (지점-관리자 배정)
+# ----------------------------------------------------------------------
+class BranchAssignment(models.Model):
+    assignment_id = models.AutoField(primary_key=True)
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, verbose_name="지점")
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, verbose_name="관리자(직원)")
+    assigned_at = models.DateTimeField(auto_now_add=True, verbose_name="배정일")
+
+    class Meta:
+        unique_together = ('branch', 'member')
+        verbose_name = "지점 소속 관리자 배정"
+        verbose_name_plural = "지점 소속 관리자 배정 목록"
+
+    def __str__(self):
+        return f"[{self.branch.branch_name}] {self.member.name} ({self.member.get_role_display()})"
