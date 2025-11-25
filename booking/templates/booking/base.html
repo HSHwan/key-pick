@@ -23,7 +23,11 @@
             {% if user.role in 'BranchManager,Admin' %}
                 <a href="{% url 'branch-manager-stats' %}" style="color: #28a745;">📊 통계</a>
             {% endif %}
-            
+
+            {% if user.role == 'Admin' %}
+                <a class="nav-link" href="{% url 'admin-global-stats' %}" style="color: #dc3545; font-weight: bold;">📊 전체 통계 분석</a>
+            {% endif %}
+
             {% if user.is_staff %}
                 <a href="/admin/" target="_blank" style="color: #dc3545;">⚙️ Admin</a>
             {% endif %}

@@ -1,7 +1,8 @@
 # booking/views.py
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Count, Sum, Q, Avg
+from django.db.models import Count, Sum, Q, Avg, DecimalField
+from django.db.models.functions import TruncDate, Coalesce
 from django.contrib.auth import logout, login, authenticate
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.exceptions import PermissionDenied
@@ -15,7 +16,7 @@ from datetime import date, timedelta
 from .models import *
 from .forms import ReviewForm, ReservationForm, IssueReportForm, ScheduleForm, BranchThemeUpdateForm
 
-# 1. 메인 & 테마 (Theme)
+# 메인 & 테마 (Theme)
 def theme_list_view(request):
     search_query = request.GET.get('search_query', '')
     branch_id = request.GET.get('branch', '')
@@ -63,7 +64,7 @@ def theme_detail_view(request, theme_id):
     }
     return render(request, 'booking/theme_detail.html', context)
 
-# 2. 회원 (Member: Signup, Login, Logout, MyPage)
+# 회원 (Member: Signup, Login, Logout, MyPage)
 def signup_view(request):
     if request.method == 'POST':
         login_id = request.POST.get('login_id')
@@ -151,7 +152,7 @@ def my_page_view(request):
     }
     return render(request, 'booking/my_page.html', context)
 
-# 3. 예약 (Reservation)
+# 예약 (Reservation)
 @login_required
 @transaction.atomic
 def reservation_create_view(request, theme_id):
@@ -240,7 +241,7 @@ def reservation_cancel_view(request, reservation_id):
     messages.success(request, "예약이 취소되었습니다.")
     return redirect('my-page')
 
-# 4. 리뷰 (Review)
+# 리뷰 (Review)
 @login_required
 def review_create_view(request, reservation_id):
     reservation = get_object_or_404(Reservation, reservation_id=reservation_id)
@@ -459,6 +460,64 @@ def branch_theme_update_view(request, theme_id):
         
     context = {'form': form, 'theme': theme}
     return render(request, 'booking/theme_update_form.html', context)
+
+@login_required
+def admin_global_stats_view(request):
+    """
+    총괄 관리자(Admin)용 전체 시스템 통계 분석 대시보드
+    """
+    if request.user.role != 'Admin':
+        raise PermissionDenied("총괄 관리자 권한이 필요합니다.")
+        
+    branch_stats = Branch.objects.filter(is_active=True).annotate(
+        total_sales=Coalesce(
+            Sum('theme__reservation__payment__amount', 
+                filter=Q(theme__reservation__payment__payment_status='Paid')), 
+            0,
+            output_field=DecimalField()
+        ),
+        total_reservations=Count('theme__reservation',
+                                 filter=Q(theme__reservation__status='Completed')),
+        active_theme_count=Count('theme', filter=Q(theme__is_active=True))
+    ).order_by('-total_sales')
+    
+    themes_with_counts = Theme.objects.filter(is_active=True).annotate(
+        res_count=Count('reservation', filter=Q(reservation__status='Completed')),
+        avg_score=Avg('reservation__review__rating')
+    )
+    
+    best_themes = themes_with_counts.order_by('-res_count')[:5]
+    worst_themes = themes_with_counts.order_by('res_count')[:5]
+    
+    end_date = timezone.now().date()
+    start_date = end_date - timedelta(days=29)
+    
+    daily_reservations = Reservation.objects.filter(
+        reservation_time__date__range=(start_date, end_date)
+    ).annotate(
+        date=TruncDate('reservation_time')
+    ).values('date').annotate(
+        count=Count('reservation_id')
+    ).order_by('date')
+
+    daily_signups = Member.objects.filter(
+        created_at__date__range=(start_date, end_date)
+    ).annotate(
+        date=TruncDate('created_at')
+    ).values('date').annotate(
+        count=Count('member_id')
+    ).order_by('date')
+    
+    context = {
+        'branch_stats': branch_stats,
+        'best_themes': best_themes,
+        'worst_themes': worst_themes,
+        'daily_reservations': daily_reservations,
+        'daily_signups': daily_signups,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    return render(request, 'booking/admin_global_stats.html', context)
 
 # 관리자 액션 (입실, 완료, 노쇼, 문제 보고, 스케줄 추가)
 @login_required
