@@ -13,7 +13,7 @@ from datetime import date, timedelta
 
 # 모델과 폼 import
 from .models import *
-from .forms import ReviewForm, ReservationForm, IssueReportForm, ScheduleForm, BranchThemeUpdateForm
+from .forms import ReviewForm, ReservationForm, IssueReportForm, ScheduleForm, BranchThemeUpdateForm, NoticeForm
 
 # 1. 메인 & 테마 (Theme)
 def theme_list_view(request):
@@ -596,3 +596,56 @@ def theme_status_toggle_view(request, theme_id):
     theme.save()
     
     return redirect('theme-manager-dashboard')
+
+# 공지사항 생성
+@login_required
+def notice_create_view(request):
+    if request.user.role != 'Admin':
+        raise PermissionDenied(" 관리자 이상만 공지사항을 작성할 수 있습니다.")
+        
+    if request.method == 'POST':
+        form = NoticeForm(request.POST)
+        if form.is_valid():
+            notice = form.save(commit=False)
+            notice.member = request.user
+            notice.save()
+            messages.success(request, "공지사항이 등록되었습니다.")
+            return redirect('notice-list')
+    else:
+        form = NoticeForm()
+        
+    context = {'form': form, 'title': '공지사항 등록'}
+    return render(request, 'booking/notice_form.html', context)
+
+# 공지사항 수정
+@login_required
+def notice_update_view(request, notice_id):
+    if request.user.role != 'Admin':
+        raise PermissionDenied("권한이 없습니다.")
+        
+    notice = get_object_or_404(Notice, notice_id=notice_id)
+    
+    if request.method == 'POST':
+        form = NoticeForm(request.POST, instance=notice)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "공지사항이 수정되었습니다.")
+            return redirect('notice-list')
+    else:
+        form = NoticeForm(instance=notice)
+        
+    context = {'form': form, 'title': '공지사항 수정'}
+    return render(request, 'booking/notice_form.html', context)
+
+# 공지사항 삭제
+@login_required
+@require_POST
+def notice_delete_view(request, notice_id):
+    if request.user.role != 'Admin':
+        raise PermissionDenied("권한이 없습니다.")
+        
+    notice = get_object_or_404(Notice, notice_id=notice_id)
+    notice.delete()
+    messages.success(request, "공지사항이 삭제되었습니다.")
+    
+    return redirect('notice-list')
