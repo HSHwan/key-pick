@@ -297,7 +297,7 @@ def review_update_view(request, review_id):
     }
     return render(request, 'booking/review_form.html', context)
 
-# 5. 관리자 대시보드 (Manager Dashboard)
+# 관리자 대시보드 (Manager Dashboard)
 @login_required
 def theme_manager_dashboard_view(request):
     """테마 관리자 대시보드"""
@@ -338,6 +338,8 @@ def theme_manager_dashboard_view(request):
     recent_issues = IssueReport.objects.filter(
         status__in=['Reported', 'InProgress']
     ).select_related('theme', 'reported_by_member').order_by('-reported_at')[:5]
+
+    themes = Theme.objects.all().order_by('branch', 'name')
     
     context = {
         'reservations': reservations,
@@ -345,6 +347,7 @@ def theme_manager_dashboard_view(request):
         'recent_issues': recent_issues,
         'today': today,
         'issue_form': issue_form,
+        'themes': themes,
     }
     
     return render(request, 'booking/manager_dashboard.html', context)
@@ -457,7 +460,7 @@ def branch_theme_update_view(request, theme_id):
     context = {'form': form, 'theme': theme}
     return render(request, 'booking/theme_update_form.html', context)
 
-# 6. 관리자 액션 (입실, 완료, 노쇼, 문제 보고, 스케줄 추가)
+# 관리자 액션 (입실, 완료, 노쇼, 문제 보고, 스케줄 추가)
 @login_required
 def checkin_update_view(request, reservation_id):
     if request.user.role not in ['ThemeManager', 'BranchManager', 'Admin']:
@@ -553,8 +556,43 @@ def schedule_create_view(request):
     context = {'form': form}
     return render(request, 'booking/schedule_form.html', context)
 
-# 7. 공지사항 (Notice)
+# 공지사항 (Notice)
 def notice_list_view(request):
     notices = Notice.objects.all().order_by('-created_at')
     context = {'notices': notices}
     return render(request, 'booking/notice_list.html', context)
+
+# 리뷰 삭제 (Review Delete)
+@login_required
+@require_POST # 리뷰 삭제는 작성자만 가능하도록 권한 설정함
+def review_delete_view(request, review_id):
+    review = get_object_or_404(Review, review_id=review_id)
+
+    if review.member != request.user:
+        raise PermissionDenied("본인의 리뷰만 삭제할 수 있습니다.")
+    
+    theme_id = review.reservation.theme.theme_id
+    review.delete()
+    messages.success(request, "리뷰가 삭제되었습니다.")
+
+    return redirect('my-page') # 삭제 후 마이페이지로 이동
+
+@login_required
+@require_POST
+def theme_status_toggle_view(request, theme_id):
+    """테마 상태를 '운영 가능' <-> '점검 중'으로 변경"""
+    if request.user.role not in ['ThemeManager', 'BranchManager', 'Admin']:
+        raise PermissionDenied("권한이 없습니다.")
+        
+    theme = get_object_or_404(Theme, theme_id=theme_id)
+    
+    if theme.status == 'Ready':
+        theme.status = 'Maintenance'
+        messages.warning(request, f"'{theme.name}' 테마가 [점검 중] 상태로 변경되었습니다. (예약 불가)")
+    else:
+        theme.status = 'Ready'
+        messages.success(request, f"'{theme.name}' 테마가 [운영 가능] 상태로 변경되었습니다.")
+    
+    theme.save()
+    
+    return redirect('theme-manager-dashboard')
