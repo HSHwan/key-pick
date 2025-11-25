@@ -16,7 +16,7 @@ from datetime import date, timedelta
 from .models import *
 from .forms import ReviewForm, ReservationForm, IssueReportForm, ScheduleForm, BranchThemeUpdateForm
 
-# 1. 메인 & 테마 (Theme)
+# 메인 & 테마 (Theme)
 def theme_list_view(request):
     search_query = request.GET.get('search_query', '')
     branch_id = request.GET.get('branch', '')
@@ -64,7 +64,7 @@ def theme_detail_view(request, theme_id):
     }
     return render(request, 'booking/theme_detail.html', context)
 
-# 2. 회원 (Member: Signup, Login, Logout, MyPage)
+# 회원 (Member: Signup, Login, Logout, MyPage)
 def signup_view(request):
     if request.method == 'POST':
         login_id = request.POST.get('login_id')
@@ -152,7 +152,7 @@ def my_page_view(request):
     }
     return render(request, 'booking/my_page.html', context)
 
-# 3. 예약 (Reservation)
+# 예약 (Reservation)
 @login_required
 @transaction.atomic
 def reservation_create_view(request, theme_id):
@@ -241,7 +241,7 @@ def reservation_cancel_view(request, reservation_id):
     messages.success(request, "예약이 취소되었습니다.")
     return redirect('my-page')
 
-# 4. 리뷰 (Review)
+# 리뷰 (Review)
 @login_required
 def review_create_view(request, reservation_id):
     reservation = get_object_or_404(Reservation, reservation_id=reservation_id)
@@ -298,7 +298,7 @@ def review_update_view(request, review_id):
     }
     return render(request, 'booking/review_form.html', context)
 
-# 5. 관리자 대시보드 (Manager Dashboard)
+# 관리자 대시보드 (Manager Dashboard)
 @login_required
 def theme_manager_dashboard_view(request):
     """테마 관리자 대시보드"""
@@ -339,6 +339,8 @@ def theme_manager_dashboard_view(request):
     recent_issues = IssueReport.objects.filter(
         status__in=['Reported', 'InProgress']
     ).select_related('theme', 'reported_by_member').order_by('-reported_at')[:5]
+
+    themes = Theme.objects.all().order_by('branch', 'name')
     
     context = {
         'reservations': reservations,
@@ -346,6 +348,7 @@ def theme_manager_dashboard_view(request):
         'recent_issues': recent_issues,
         'today': today,
         'issue_form': issue_form,
+        'themes': themes,
     }
     
     return render(request, 'booking/manager_dashboard.html', context)
@@ -516,7 +519,7 @@ def admin_global_stats_view(request):
     }
     return render(request, 'booking/admin_global_stats.html', context)
 
-# 6. 관리자 액션 (입실, 완료, 노쇼, 문제 보고, 스케줄 추가)
+# 관리자 액션 (입실, 완료, 노쇼, 문제 보고, 스케줄 추가)
 @login_required
 def checkin_update_view(request, reservation_id):
     if request.user.role not in ['ThemeManager', 'BranchManager', 'Admin']:
@@ -612,8 +615,43 @@ def schedule_create_view(request):
     context = {'form': form}
     return render(request, 'booking/schedule_form.html', context)
 
-# 7. 공지사항 (Notice)
+# 공지사항 (Notice)
 def notice_list_view(request):
     notices = Notice.objects.all().order_by('-created_at')
     context = {'notices': notices}
     return render(request, 'booking/notice_list.html', context)
+
+# 리뷰 삭제 (Review Delete)
+@login_required
+@require_POST # 리뷰 삭제는 작성자만 가능하도록 권한 설정함
+def review_delete_view(request, review_id):
+    review = get_object_or_404(Review, review_id=review_id)
+
+    if review.member != request.user:
+        raise PermissionDenied("본인의 리뷰만 삭제할 수 있습니다.")
+    
+    theme_id = review.reservation.theme.theme_id
+    review.delete()
+    messages.success(request, "리뷰가 삭제되었습니다.")
+
+    return redirect('my-page') # 삭제 후 마이페이지로 이동
+
+@login_required
+@require_POST
+def theme_status_toggle_view(request, theme_id):
+    """테마 상태를 '운영 가능' <-> '점검 중'으로 변경"""
+    if request.user.role not in ['ThemeManager', 'BranchManager', 'Admin']:
+        raise PermissionDenied("권한이 없습니다.")
+        
+    theme = get_object_or_404(Theme, theme_id=theme_id)
+    
+    if theme.status == 'Ready':
+        theme.status = 'Maintenance'
+        messages.warning(request, f"'{theme.name}' 테마가 [점검 중] 상태로 변경되었습니다. (예약 불가)")
+    else:
+        theme.status = 'Ready'
+        messages.success(request, f"'{theme.name}' 테마가 [운영 가능] 상태로 변경되었습니다.")
+    
+    theme.save()
+    
+    return redirect('theme-manager-dashboard')
