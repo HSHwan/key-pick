@@ -1,24 +1,61 @@
-{% extends 'booking/base.html' %} {% block content %}
+{% extends 'booking/base.html' %} 
+
+{% block title %}공지사항 목록{% endblock %}
+
+{% block content %}
 <div class="container">
-  <h1>📢 공지사항</h1>
-  <hr />
-  {% for notice in notices %}
-  <div style="border-bottom: 1px solid #eee; padding: 15px 0">
-    <h3>
-      {{ notice.title }}
-      <span style="font-size: 0.6em; color: #888"
-        >{{ notice.created_at|date:"Y-m-d" }}</span
-      >
-    </h3>
-    <p>{{ notice.content|linebreaks }}</p>
-    {% if notice.target_branch %}
-    <small style="color: blue"
-      >Targets: {{ notice.target_branch.branch_name }}</small
-    >
-    {% endif %}
-  </div>
-  {% empty %}
-  <p>등록된 공지사항이 없습니다.</p>
-  {% endfor %}
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>📢 공지사항</h1>
+        
+        {% if user.role == 'Admin' %}
+            <a href="{% url 'notice-create' %}" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                + 공지사항 등록
+            </a>
+        {% endif %}
+    </div>
+    
+    <hr />
+    
+    {% for notice in notices %}
+    <div style="border-bottom: 1px solid #eee; padding: 15px 0">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h3 style="margin: 0 0 10px 0;">
+                    {% if notice.target_branch %}
+                        <span style="font-size: 0.7em; background: #e2e6ea; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-right: 5px;">
+                            {{ notice.target_branch.branch_name }}
+                        </span>
+                    {% else %}
+                        <span style="font-size: 0.7em; background: #333; color: white; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-right: 5px;">
+                            전체
+                        </span>
+                    {% endif %}
+                    
+                    {{ notice.title }}
+                </h3>
+                <span style="font-size: 0.85em; color: #888;">
+                    {{ notice.created_at|date:"Y-m-d" }} | 작성자: {{ notice.member.name }}
+                </span>
+            </div>
+            
+            {% if user.role == 'Admin' %}
+                <div style="font-size: 0.9em;">
+                    <a href="{% url 'notice-update' notice.notice_id %}" style="color: #007bff; text-decoration: none; margin-right: 5px;">수정</a>
+                    <form action="{% url 'notice-delete' notice.notice_id %}" method="POST" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" onclick="return confirm('정말 삭제하시겠습니까?');" 
+                                style="background: none; border: none; color: #dc3545; cursor: pointer; padding: 0; font: inherit; text-decoration: underline;">
+                            삭제
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+        
+        <p style="margin-top: 15px; white-space: pre-wrap;">{{ notice.content }}</p>
+    </div>
+    {% empty %}
+    <p style="text-align: center; color: #888; margin-top: 30px;">등록된 공지사항이 없습니다.</p>
+    {% endfor %}
 </div>
 {% endblock %}

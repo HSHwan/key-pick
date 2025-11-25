@@ -40,6 +40,9 @@ urlpatterns = [
     
     # 공지사항
     path('notices/', views.notice_list_view, name='notice-list'),
+    path('notices/create/', views.notice_create_view, name='notice-create'), # [추가]
+    path('notices/update/<int:notice_id>/', views.notice_update_view, name='notice-update'), # [추가]
+    path('notices/delete/<int:notice_id>/', views.notice_delete_view, name='notice-delete'), # [추가]
 
     # 비밀번호 재설정
     path('password_reset/', auth_views.PasswordResetView.as_view(template_name='booking/password_reset.html'), name='password_reset'),

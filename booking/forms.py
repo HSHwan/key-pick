@@ -1,8 +1,8 @@
 # booking/forms.py
 from django import forms
-from .models import Review, Reservation, IssueReport, Schedule, Theme
+from .models import Review, Reservation, IssueReport, Schedule, Theme, Notice
 
-# 1. 리뷰 폼
+# 리뷰 폼
 class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
@@ -16,7 +16,7 @@ class ReviewForm(forms.ModelForm):
             'comment': '리뷰 내용',
         }
 
-# 2. 예약 폼
+# 예약 폼
 class ReservationForm(forms.ModelForm):
     class Meta:
         model = Reservation
@@ -34,7 +34,7 @@ class ReservationForm(forms.ModelForm):
             'num_of_participants': '참가 인원',
         }
 
-# 3. 시설 문제 보고 폼
+# 시설 문제 보고 폼
 class IssueReportForm(forms.ModelForm):
     class Meta:
         model = IssueReport
@@ -48,7 +48,7 @@ class IssueReportForm(forms.ModelForm):
             'issue_description': '내용',
         }
 
-# 4. 스케줄 등록 폼
+# 스케줄 등록 폼
 class ScheduleForm(forms.ModelForm):
     class Meta:
         model = Schedule
@@ -62,7 +62,7 @@ class ScheduleForm(forms.ModelForm):
             'assigned_theme': forms.Select(attrs={'class': 'form-control'}),
         }
 
-# 5. 지점 관리자용 테마 수정 폼
+# 지점 관리자용 테마 수정 폼
 class BranchThemeUpdateForm(forms.ModelForm):
     class Meta:
         model = Theme
@@ -77,4 +77,19 @@ class BranchThemeUpdateForm(forms.ModelForm):
             'discount_rate': '할인율 (%)',
             'status': '운영 상태',
             'is_active': '활성화 여부'
+        }
+# 공지사항 작성
+class NoticeForm(forms.ModelForm):
+    class Meta:
+        model = Notice
+        fields = ['title', 'content', 'target_branch']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '제목을 입력하세요'}),
+            'content': forms.Textarea(attrs={'rows': 10, 'class': 'form-control', 'placeholder': '내용을 입력하세요'}),
+            'target_branch': forms.Select(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'title': '제목',
+            'content': '내용',
+            'target_branch': '대상 지점 (선택 안 함: 전체 공지)',
         }
