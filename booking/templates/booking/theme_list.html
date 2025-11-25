@@ -5,20 +5,57 @@
 {% block content %}
     <h1>방탈출 테마 목록</h1>
 
-    <div class="search-box" style="background: #f4f4f4; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <form method="GET" action="{% url 'theme-list' %}">
-            <input type="text" name="search_query" placeholder="테마명 또는 장르" value="{{ search_query }}">
+    <div class="search-box" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid #ddd;">
+        <form method="GET" action="{% url 'theme-list' %}" class="row g-3">
             
-            <select name="branch">
-                <option value="">모든 지점</option>
-                {% for branch in branches %}
-                    <option value="{{ branch.branch_id }}" {% if selected_branch|stringformat:"s" == branch.branch_id|stringformat:"s" %}selected{% endif %}>
-                        {{ branch.branch_name }}
-                    </option>
-                {% endfor %}
-            </select>
-            
-            <button type="submit">검색</button>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">검색어</label>
+                <input type="text" name="search_query" class="form-control" placeholder="테마명 또는 장르" value="{{ search_query }}">
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">지점 선택</label>
+                <select name="branch" class="form-select">
+                    <option value="">모든 지점</option>
+                    {% for branch in branches %}
+                        <option value="{{ branch.branch_id }}" {% if selected_branch|stringformat:"s" == branch.branch_id|stringformat:"s" %}selected{% endif %}>
+                            {{ branch.branch_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-bold">난이도</label>
+                <select name="difficulty" class="form-select">
+                    <option value="">전체</option>
+                    <option value="1" {% if selected_difficulty == "1" %}selected{% endif %}>⭐ 1</option>
+                    <option value="2" {% if selected_difficulty == "2" %}selected{% endif %}>⭐⭐ 2</option>
+                    <option value="3" {% if selected_difficulty == "3" %}selected{% endif %}>⭐⭐⭐ 3</option>
+                    <option value="4" {% if selected_difficulty == "4" %}selected{% endif %}>⭐⭐⭐⭐ 4</option>
+                    <option value="5" {% if selected_difficulty == "5" %}selected{% endif %}>⭐⭐⭐⭐⭐ 5</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-bold">최대 가격 (1인)</label>
+                <div class="input-group">
+                    <input type="number" name="max_price" class="form-control" placeholder="예: 30000" value="{{ selected_max_price }}">
+                    <span class="input-group-text">원 이하</span>
+                </div>
+            </div>
+
+            <div class="col-12 d-flex justify-content-between align-items-end mt-3">
+                <div class="sort-options">
+                    <span class="fw-bold me-2">정렬:</span>
+                    <input type="radio" name="sort" value="latest" id="sort_latest" {% if sort_by == 'latest' %}checked{% endif %} onchange="this.form.submit()"> <label for="sort_latest" class="me-2">최신순</label>
+                    <input type="radio" name="sort" value="rating" id="sort_rating" {% if sort_by == 'rating' %}checked{% endif %} onchange="this.form.submit()"> <label for="sort_rating" class="me-2">평점순</label>
+                    <input type="radio" name="sort" value="reviews" id="sort_reviews" {% if sort_by == 'reviews' %}checked{% endif %} onchange="this.form.submit()"> <label for="sort_reviews">리뷰많은순</label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary px-4">🔍 검색 적용</button>
+            </div>
+
         </form>
     </div>
 
