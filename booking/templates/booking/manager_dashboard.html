@@ -82,14 +82,15 @@
                             <td style="padding: 10px; text-align: center;">
                                 {% if reservation.status == 'Confirmed' %}
                                     <a href="{% url 'checkin-update' reservation.reservation_id %}" 
-                                       style="background: #28a745; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9em;">
-                                        입실 처리
+                                       style="background: #28a745; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9em;" onclick="return confirm('입실 처리 하시겠습니까?')"></a>
+                                        입실 확인
                                     </a>
-                                    <a href="{% url 'noshow-update' reservation.reservation_id %}" class="btn-sm" style="background: #dc3545; color: white; padding: 5px; text-decoration: none;" onclick="return confirm('노쇼 처리 하시겠습니까?')">노쇼</a>
+                                    <a href="{% url 'noshow-update' reservation.reservation_id %}" class="btn-sm"
+                                    style="background: #dc3545; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9em;" onclick="return confirm('노쇼 처리 하시겠습니까?')">노쇼</a>
                                 {% elif reservation.status == 'CheckedIn' %}
                                     <a href="{% url 'complete-reservation' reservation.reservation_id %}" 
                                        style="background: #007bff; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9em;">
-                                        완료 처리
+                                        완료
                                     </a>
                                 {% else %}
                                     <span style="color: #888;">-</span>
