@@ -708,3 +708,39 @@ def notice_delete_view(request, notice_id):
     messages.success(request, "공지사항이 삭제되었습니다.")
     
     return redirect('notice-list')
+
+# 스케줄 수정
+@login_required
+def schedule_update_view(request, schedule_id):
+    if request.user.role not in ['BranchManager', 'Admin']:
+        raise PermissionDenied("지점 관리자 권한이 필요합니다.")
+        
+    schedule = get_object_or_404(Schedule, schedule_id=schedule_id)
+    
+    # 지점 관리자는 본인 담당 지점의 스케줄만 수정 가능하도록 체크 (선택 사항)
+    # 현재 모델 구조상 엄격한 체크가 어렵다면 일단 권한만 확인합니다.
+
+    if request.method == 'POST':
+        form = ScheduleForm(request.POST, instance=schedule)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "스케줄이 수정되었습니다.")
+            return redirect('branch-manager-stats')
+    else:
+        form = ScheduleForm(instance=schedule)
+        
+    context = {'form': form}
+    return render(request, 'booking/schedule_form.html', context)
+
+# 스케줄 삭제
+@login_required
+@require_POST
+def schedule_delete_view(request, schedule_id):
+    if request.user.role not in ['BranchManager', 'Admin']:
+        raise PermissionDenied("권한이 없습니다.")
+        
+    schedule = get_object_or_404(Schedule, schedule_id=schedule_id)
+    schedule.delete()
+    messages.success(request, "스케줄이 삭제되었습니다.")
+    
+    return redirect('branch-manager-stats')

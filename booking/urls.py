@@ -37,6 +37,8 @@ urlpatterns = [
     path('manager/noshow/<int:reservation_id>/', views.noshow_update_view, name='noshow-update'),
     path('manager/issue/create/', views.issue_create_view, name='issue-create'),
     path('manager/schedule/create/', views.schedule_create_view, name='schedule-create'),
+    path('manager/schedule/update/<int:schedule_id>/', views.schedule_update_view, name='schedule-update'), # [추가]
+    path('manager/schedule/delete/<int:schedule_id>/', views.schedule_delete_view, name='schedule-delete'), # [추가]    
     
     # 공지사항
     path('notices/', views.notice_list_view, name='notice-list'),

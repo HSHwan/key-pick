@@ -1,9 +1,45 @@
-{% extends 'booking/base.html' %} {% block content %}
-<div class="container">
-  <h2>직원 스케줄 등록</h2>
+{% extends 'booking/base.html' %} 
+
+{% block content %}
+<div class="container" style="max-width: 600px;">
+  {% if form.instance.pk %}
+    <h2>🗓️ 직원 스케줄 수정</h2>
+  {% else %}
+    <h2>🗓️ 직원 스케줄 등록</h2>
+  {% endif %}
+  
+  <hr>
+  
   <form method="POST">
-    {% csrf_token %} {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">등록하기</button>
+    {% csrf_token %} 
+    
+    <div class="form-group mb-3">
+        <label>직원:</label> {{ form.member }}
+    </div>
+    <div class="form-group mb-3">
+        <label>지점:</label> {{ form.branch }}
+    </div>
+    <div class="form-group mb-3">
+        <label>날짜:</label> {{ form.work_date }}
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <div class="form-group mb-3" style="flex: 1;">
+            <label>시작 시간:</label> {{ form.start_time }}
+        </div>
+        <div class="form-group mb-3" style="flex: 1;">
+            <label>종료 시간:</label> {{ form.end_time }}
+        </div>
+    </div>
+    <div class="form-group mb-3">
+        <label>배정 테마 (선택):</label> {{ form.assigned_theme }}
+    </div>
+
+    <div style="margin-top: 20px;">
+        <button type="submit" class="btn btn-primary" style="background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+            {% if form.instance.pk %} 수정 완료 {% else %} 등록하기 {% endif %}
+        </button>
+        <a href="{% url 'branch-manager-stats' %}" style="color: #666; text-decoration: none; margin-left: 10px;">취소</a>
+    </div>
   </form>
 </div>
 {% endblock %}
