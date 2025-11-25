@@ -2,6 +2,7 @@
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Count, Sum, Q, Avg
+from django.db.models.functions import TruncDate
 from django.contrib.auth import logout, login, authenticate
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.exceptions import PermissionDenied
@@ -456,6 +457,74 @@ def branch_theme_update_view(request, theme_id):
         
     context = {'form': form, 'theme': theme}
     return render(request, 'booking/theme_update_form.html', context)
+
+@login_required
+def admin_global_stats_view(request):
+    """
+    총괄 관리자(Admin)용 전체 시스템 통계 분석 대시보드
+    """
+    # 1. 권한 체크 (Admin만 접근 가능)
+    if request.user.role != 'Admin':
+        raise PermissionDenied("총괄 관리자 권한이 필요합니다.")
+        
+    # --- [섹션 1] 지점별 매출 및 예약 비교 (Rank) ---
+    # 지점(Branch)을 기준으로, 연결된 테마 -> 예약 -> 결제 데이터를 합산합니다.
+    # SQL: SELECT branch_name, SUM(amount) FROM ... GROUP BY branch_id ORDER BY total_sales DESC
+    branch_stats = Branch.objects.filter(is_active=True).annotate(
+        total_sales=Sum('theme__reservation__payment__amount', 
+                        filter=Q(theme__reservation__payment__payment_status='Paid')),
+        total_reservations=Count('theme__reservation',
+                                 filter=Q(theme__reservation__status='Completed')),
+        active_theme_count=Count('theme', filter=Q(theme__is_active=True))
+    ).order_by('-total_sales') # 매출 높은 순 정렬
+    
+    
+    # --- [섹션 2] 테마 성과 분석 (Best & Worst) ---
+    # 예약 완료(Completed) 건수를 기준으로 정렬합니다.
+    themes_with_counts = Theme.objects.filter(is_active=True).annotate(
+        res_count=Count('reservation', filter=Q(reservation__status='Completed')),
+        avg_score=Avg('reservation__review__rating')
+    )
+    
+    # Best 5 테마
+    best_themes = themes_with_counts.order_by('-res_count')[:5]
+    
+    # Worst 5 테마 (예약이 적은 순)
+    worst_themes = themes_with_counts.order_by('res_count')[:5]
+    
+    
+    # --- [섹션 3] 기간별 추이 (최근 30일) ---
+    end_date = timezone.now().date()
+    start_date = end_date - timedelta(days=29) # 30일 전
+    
+    # 일별 예약 건수 추이
+    daily_reservations = Reservation.objects.filter(
+        reservation_time__date__range=(start_date, end_date)
+    ).annotate(
+        date=TruncDate('reservation_time') # 날짜별로 자름 (GROUP BY date)
+    ).values('date').annotate(
+        count=Count('reservation_id')
+    ).order_by('date')
+
+    # 일별 회원가입 추이
+    daily_signups = Member.objects.filter(
+        created_at__date__range=(start_date, end_date)
+    ).annotate(
+        date=TruncDate('created_at')
+    ).values('date').annotate(
+        count=Count('member_id')
+    ).order_by('date')
+    
+    context = {
+        'branch_stats': branch_stats,
+        'best_themes': best_themes,
+        'worst_themes': worst_themes,
+        'daily_reservations': daily_reservations,
+        'daily_signups': daily_signups,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    return render(request, 'booking/admin_global_stats.html', context)
 
 # 6. 관리자 액션 (입실, 완료, 노쇼, 문제 보고, 스케줄 추가)
 @login_required

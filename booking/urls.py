@@ -4,7 +4,7 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
-    #메인 페이지 (접속 시 바로 테마 목록 보여주기)
+    # 메인 페이지 (접속 시 바로 테마 목록 보여주기)
     path('', views.theme_list_view, name='root'),
 
     # 회원가입 및 로그인
@@ -44,4 +44,7 @@ urlpatterns = [
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='booking/password_reset_done.html'), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='booking/password_reset_confirm.html'), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='booking/password_reset_complete.html'), name='password_reset_complete'),
+
+    # 전체 통계 분석
+    path('statistics/', views.admin_global_stats_view, name='admin-global-stats'),
 ]
