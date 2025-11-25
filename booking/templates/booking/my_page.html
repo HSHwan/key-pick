@@ -68,7 +68,18 @@
                 <small style="color: #999;">({{ review.created_at|date:"Y-m-d" }})</small>
             </p>
             <p>{{ review.comment|linebreaksbr }}</p>
-            <a href="{% url 'review-update' review.review_id %}" style="font-size: 0.9em;">수정하기</a>
+        
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a href="{% url 'review-update' review.review_id %}" style="font-size: 0.9em;">수정하기</a>
+            
+                <form action="{% url 'review-delete' review.review_id %}" method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" onclick="return confirm('정말 삭제하시겠습니까?');" 
+                        style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 0.9em; text-decoration: underline; padding: 0;">
+                        삭제하기
+                    </button>
+                </form>
+            </div>
         </div>
     {% empty %}
         <p>작성한 리뷰가 없습니다.</p>

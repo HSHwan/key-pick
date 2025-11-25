@@ -159,6 +159,57 @@
             <button type="submit" style="background: #ffc107; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px;">보고 등록</button>
         </form>
     </div>
+    
+    <div class="theme-management-section">
+        <h2>🔑 테마 운영 상태 관리</h2>
+        <p style="color: #666; font-size: 0.9em;">'점검 중' 상태로 변경하면 고객이 예약을 할 수 없습니다.</p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <thead style="background: #333; color: white;">
+                <tr>
+                    <th style="padding: 12px; text-align: left;">지점</th>
+                    <th style="padding: 12px; text-align: left;">테마명</th>
+                    <th style="padding: 12px; text-align: center;">현재 상태</th>
+                    <th style="padding: 12px; text-align: center;">관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for theme in themes %}
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 12px;">{{ theme.branch.branch_name }}</td>
+                        <td style="padding: 12px;"><strong>{{ theme.name }}</strong></td>
+                        <td style="padding: 12px; text-align: center;">
+                            {% if theme.status == 'Ready' %}
+                                <span style="color: #28a745; font-weight: bold; background: #e6f9e6; padding: 5px 10px; border-radius: 20px; font-size: 0.9em;">
+                                    ● 운영 가능
+                                </span>
+                            {% else %}
+                                <span style="color: #dc3545; font-weight: bold; background: #ffe6e6; padding: 5px 10px; border-radius: 20px; font-size: 0.9em;">
+                                    ● 점검 중
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <form action="{% url 'theme-status-toggle' theme.theme_id %}" method="POST">
+                                {% csrf_token %}
+                                {% if theme.status == 'Ready' %}
+                                    <button type="submit" onclick="return confirm('{{ theme.name }} 예약을 막으시겠습니까?');"
+                                            style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                                        점검 전환 (예약 막기)
+                                    </button>
+                                {% else %}
+                                    <button type="submit" onclick="return confirm('{{ theme.name }} 예약을 다시 받으시겠습니까?');"
+                                            style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                                        운영 재개 (예약 열기)
+                                    </button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
 </div>
 {% endblock %}

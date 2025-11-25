@@ -21,9 +21,19 @@
                 <p>
                     <strong>{{ review.member.name }}</strong>
                     <span style="color: #f0ad4e; font-weight: bold;">(★ {{ review.rating }})</span>
-                    
+    
                     {% if review.member == user %}
-                        <a href="{% url 'review-update' review.review_id %}" style="font-size: 0.9em; margin-left: 10px;">수정</a>
+                        <span style="margin-left: 10px; font-size: 0.9em;">
+                            <a href="{% url 'review-update' review.review_id %}">수정</a>
+                            |
+                            <form action="{% url 'review-delete' review.review_id %}" method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" onclick="return confirm('이 리뷰를 삭제하시겠습니까?');" 
+                                        style="background: none; border: none; color: #dc3545; cursor: pointer; text-decoration: underline; padding: 0;">
+                                    삭제
+                                </button>
+                            </form>
+                        </span>
                     {% endif %}
                 </p>
                 <p style="color: #777; font-size: 0.9em;">{{ review.created_at|date:"Y.m.d" }}</p>

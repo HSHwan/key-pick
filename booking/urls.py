@@ -18,6 +18,7 @@ urlpatterns = [
     path('themes/<int:theme_id>/', views.theme_detail_view, name='theme-detail'),
     path('review/create/<int:reservation_id>/', views.review_create_view, name='review-create'),
     path('review/update/<int:review_id>/', views.review_update_view, name='review-update'),
+    path('review/delete/<int:review_id>/', views.review_delete_view, name='review-delete'),
     
     # 예약
     path('reservation/create/<int:theme_id>/', views.reservation_create_view, name='reservation-create'),
@@ -30,6 +31,7 @@ urlpatterns = [
     path('manager/checkin/<int:reservation_id>/', views.checkin_update_view, name='checkin-update'),
     path('manager/complete/<int:reservation_id>/', views.complete_reservation_view, name='complete-reservation'),
     path('manager/theme/update/<int:theme_id>/', views.branch_theme_update_view, name='branch-theme-update'),
+    path('manager/theme/toggle/<int:theme_id>/', views.theme_status_toggle_view, name='theme-status-toggle'),
     
     # 관리자 추가
     path('manager/noshow/<int:reservation_id>/', views.noshow_update_view, name='noshow-update'),
