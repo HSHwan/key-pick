@@ -133,7 +133,6 @@
         {% endfor %}
     ];
 
-    // 2. 차트 생성
     const ctx = document.getElementById('trendChart').getContext('2d');
     const trendChart = new Chart(ctx, {
         type: 'line',
@@ -156,7 +155,7 @@
             responsive: true,
             scales: {
                 x: {
-                    type: 'category', // 날짜축
+                    type: 'category',
                     title: { display: true, text: '날짜' }
                 },
                 y: {
