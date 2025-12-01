@@ -1,79 +1,134 @@
 {% extends 'booking/base.html' %}
 
-{% block title %}방탈출 테마 목록{% endblock %}
+{% block title %}Key-Pick 테마 찾기{% endblock %}
 
 {% block content %}
-    <h1>방탈출 테마 목록</h1>
+<div class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">Key-Pick Your Escape</h1>
+        <p class="hero-subtitle">일상에서 탈출할 준비가 되셨나요? 최고의 방탈출 테마를 예약하세요.</p>
+    </div>
+</div>
 
-    <div class="search-box" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px; border: 1px solid #ddd;">
-        <form method="GET" action="{% url 'theme-list' %}" class="row g-3">
-            
-            <div class="col-md-4">
-                <label class="form-label fw-bold">검색어</label>
-                <input type="text" name="search_query" class="form-control" placeholder="테마명 또는 장르" value="{{ search_query }}">
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label fw-bold">지점 선택</label>
-                <select name="branch" class="form-select">
-                    <option value="">모든 지점</option>
-                    {% for branch in branches %}
-                        <option value="{{ branch.branch_id }}" {% if selected_branch|stringformat:"s" == branch.branch_id|stringformat:"s" %}selected{% endif %}>
-                            {{ branch.branch_name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="col-md-2">
-                <label class="form-label fw-bold">난이도</label>
-                <select name="difficulty" class="form-select">
-                    <option value="">전체</option>
-                    <option value="1" {% if selected_difficulty == "1" %}selected{% endif %}>⭐ 1</option>
-                    <option value="2" {% if selected_difficulty == "2" %}selected{% endif %}>⭐⭐ 2</option>
-                    <option value="3" {% if selected_difficulty == "3" %}selected{% endif %}>⭐⭐⭐ 3</option>
-                    <option value="4" {% if selected_difficulty == "4" %}selected{% endif %}>⭐⭐⭐⭐ 4</option>
-                    <option value="5" {% if selected_difficulty == "5" %}selected{% endif %}>⭐⭐⭐⭐⭐ 5</option>
-                </select>
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label fw-bold">최대 가격 (1인)</label>
-                <div class="input-group">
-                    <input type="number" name="max_price" class="form-control" placeholder="예: 30000" value="{{ selected_max_price }}">
-                    <span class="input-group-text">원 이하</span>
-                </div>
-            </div>
-
-            <div class="col-12 d-flex justify-content-between align-items-end mt-3">
-                <div class="sort-options">
-                    <span class="fw-bold me-2">정렬:</span>
-                    <input type="radio" name="sort" value="latest" id="sort_latest" {% if sort_by == 'latest' %}checked{% endif %} onchange="this.form.submit()"> <label for="sort_latest" class="me-2">최신순</label>
-                    <input type="radio" name="sort" value="rating" id="sort_rating" {% if sort_by == 'rating' %}checked{% endif %} onchange="this.form.submit()"> <label for="sort_rating" class="me-2">평점순</label>
-                    <input type="radio" name="sort" value="reviews" id="sort_reviews" {% if sort_by == 'reviews' %}checked{% endif %} onchange="this.form.submit()"> <label for="sort_reviews">리뷰많은순</label>
-                </div>
+<div class="container">
+    
+    <div class="search-container">
+        <form method="GET" action="{% url 'theme-list' %}">
+            <div class="row g-3 align-items-end">
                 
-                <button type="submit" class="btn btn-primary px-4">🔍 검색 적용</button>
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label">검색어</label>
+                    <input type="text" name="search_query" class="form-control" placeholder="테마명, 장르 검색" value="{{ search_query }}">
+                </div>
+
+                <div class="col-lg-2 col-md-3 col-6">
+                    <label class="form-label">지점</label>
+                    <select name="branch" class="form-select">
+                        <option value="">전체 지점</option>
+                        {% for branch in branches %}
+                            <option value="{{ branch.branch_id }}" {% if selected_branch|stringformat:"s" == branch.branch_id|stringformat:"s" %}selected{% endif %}>
+                                {{ branch.branch_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-3 col-6">
+                    <label class="form-label">난이도</label>
+                    <select name="difficulty" class="form-select">
+                        <option value="">전체</option>
+                        <option value="1" {% if selected_difficulty == "1" %}selected{% endif %}>LEVEL 1</option>
+                        <option value="2" {% if selected_difficulty == "2" %}selected{% endif %}>LEVEL 2</option>
+                        <option value="3" {% if selected_difficulty == "3" %}selected{% endif %}>LEVEL 3</option>
+                        <option value="4" {% if selected_difficulty == "4" %}selected{% endif %}>LEVEL 4</option>
+                        <option value="5" {% if selected_difficulty == "5" %}selected{% endif %}>LEVEL 5</option>
+                    </select>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label">최대 가격 (1인)</label>
+                    <input type="number" name="max_price" class="form-control" placeholder="예: 30000" value="{{ selected_max_price }}">
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <button type="submit" class="btn btn-book" style="background: #1a1a2e;">
+                        🔍 검색
+                    </button>
+                </div>
             </div>
 
+            <hr class="my-4" style="opacity: 0.1;">
+
+            <div class="d-flex align-items-center">
+                <span class="me-3" style="font-weight: 600; font-size: 0.9rem; color: #333;">정렬:</span>
+                
+                <label>
+                    <input type="radio" name="sort" value="latest" class="sort-radio" {% if sort_by == 'latest' %}checked{% endif %} onchange="this.form.submit()">
+                    <span class="sort-label">✨ 최신등록순</span>
+                </label>
+                
+                <label>
+                    <input type="radio" name="sort" value="rating" class="sort-radio" {% if sort_by == 'rating' %}checked{% endif %} onchange="this.form.submit()">
+                    <span class="sort-label">⭐ 평점높은순</span>
+                </label>
+                
+                <label>
+                    <input type="radio" name="sort" value="reviews" class="sort-radio" {% if sort_by == 'reviews' %}checked{% endif %} onchange="this.form.submit()">
+                    <span class="sort-label">💬 리뷰많은순</span>
+                </label>
+            </div>
         </form>
     </div>
 
-    <div class="theme-list">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
         {% for theme in themes %}
-            <a href="{% url 'theme-detail' theme.theme_id %}" style="text-decoration: none; color: inherit;">
-                <div class="theme-card" style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px;" >
-                    <h3>{{ theme.name }} <span style="font-size: 0.8em; color: #888;">({{ theme.branch.branch_name }})</span></h3>
-                    <p>{{ theme.description }}</p>
-                    <div class="details" style="color: #555;">
-                        <span>장르: {{ theme.genre }}</span> |
-                        <span>난이도: {{ theme.difficulty }}</span> |
-                        <span>시간: {{ theme.duration }}분</span> |
-                        <span>가격: {{ theme.price }}원</span>
+            <div class="col">
+                <div class="theme-card">
+                    <div class="card-img-placeholder">
+                        {{ theme.name|slice:":1" }}
+                        <span class="branch-badge">📍 {{ theme.branch.branch_name }}</span>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="theme-title text-truncate">{{ theme.name }}</h5>
+                            <span class="difficulty-stars">
+                                {% if theme.difficulty == 1 %}★☆☆☆☆{% endif %}
+                                {% if theme.difficulty == 2 %}★★☆☆☆{% endif %}
+                                {% if theme.difficulty == 3 %}★★★☆☆{% endif %}
+                                {% if theme.difficulty == 4 %}★★★★☆{% endif %}
+                                {% if theme.difficulty == 5 %}★★★★★{% endif %}
+                            </span>
+                        </div>
+                        
+                        <p class="text-muted small mb-3" style="min-height: 40px;">
+                            {{ theme.description|truncatechars:60 }}
+                        </p>
+                        
+                        <div class="theme-meta">
+                            <span class="meta-item badge bg-light text-dark border">👻 {{ theme.genre }}</span>
+                            <span class="meta-item badge bg-light text-dark border">⏱️ {{ theme.duration }}분</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-end mt-2">
+                            <div>
+                                <div class="small text-muted mb-1">⭐ {{ theme.avg_rating|default:"0.0"|floatformat:1 }} ({{ theme.review_count }})</div>
+                                <div class="price-tag">{{ theme.price }}원 <small style="font-size:0.7em; font-weight:normal">/ 1인</small></div>
+                            </div>
+                            <a href="{% url 'theme-detail' theme.theme_id %}" class="btn btn-sm btn-outline-dark px-4" style="border-radius: 20px;">
+                                상세보기
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </a> {% empty %}
-            <p>조회 가능한 테마가 없습니다.</p>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <div style="font-size: 3rem;">🕵️‍♀️</div>
+                <h3 class="mt-3 text-muted">조건에 맞는 테마가 없습니다.</h3>
+                <p>검색 조건을 변경하여 다시 시도해보세요.</p>
+            </div>
         {% endfor %}
     </div>
+
+</div>
 {% endblock %}
