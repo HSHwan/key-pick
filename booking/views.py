@@ -21,8 +21,10 @@ def theme_list_view(request):
     search_query = request.GET.get('search_query', '')
     branch_id = request.GET.get('branch', '')
     sort_by = request.GET.get('sort', 'latest')
+    difficulty_filter = request.GET.get('difficulty', '')
+    max_price_filter = request.GET.get('max_price', '')
     
-    # 기본 쿼리셋 (평점 평균과 리뷰 개수 계산 포함)
+    # 기본 쿼리셋
     themes = Theme.objects.filter(is_active=True, status='Ready').annotate(
         avg_rating=Avg('reservation__review__rating'),
         review_count=Count('reservation__review')
@@ -33,8 +35,15 @@ def theme_list_view(request):
             Q(name__icontains=search_query) | 
             Q(genre__icontains=search_query)
         )
+    
     if branch_id:
         themes = themes.filter(branch_id=branch_id)
+        
+    if difficulty_filter:
+        themes = themes.filter(difficulty=difficulty_filter)
+        
+    if max_price_filter:
+        themes = themes.filter(price__lte=max_price_filter)
         
     if sort_by == 'rating':
         themes = themes.order_by('-avg_rating')
@@ -51,6 +60,8 @@ def theme_list_view(request):
         'selected_branch': branch_id,
         'search_query': search_query,
         'sort_by': sort_by,
+        'selected_difficulty': difficulty_filter,
+        'selected_max_price': max_price_filter,
     }
     return render(request, 'booking/theme_list.html', context)
 
