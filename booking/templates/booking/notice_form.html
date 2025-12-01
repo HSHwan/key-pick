@@ -1,0 +1,39 @@
+{% extends 'booking/base.html' %} 
+
+{% block title %}{{ title }}{% endblock %} 
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+    <h2>📢 {{ title }}</h2>
+    <hr>
+    
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="form-group mb-3">
+            <label style="font-weight: bold;">{{ form.title.label }}</label>
+            {{ form.title }}
+        </div>
+        
+        <div class="form-group mb-3">
+            <label style="font-weight: bold;">{{ form.target_branch.label }}</label>
+            {{ form.target_branch }}
+            <small class="text-muted">특정 지점용 공지가 아니면 비워두세요 (전체 공지).</small>
+        </div>
+        
+        <div class="form-group mb-3">
+            <label style="font-weight: bold;">{{ form.content.label }}</label>
+            {{ form.content }}
+        </div>
+        
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button type="submit" class="btn btn-primary" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                저장하기
+            </button>
+            <a href="{% url 'notice-list' %}" class="btn btn-secondary" style="background: #6c757d; color: white; text-decoration: none; padding: 10px 20px; border-radius: 4px;">
+                취소
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
