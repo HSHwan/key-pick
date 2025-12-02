@@ -204,3 +204,30 @@ class IssueReportAdmin(admin.ModelAdmin):
             colors.get(obj.status, 'black'), obj.get_status_display()
         )
     status_badge.short_description = '상태'
+
+# 10. BranchAssignment (지점-관리자 배정)
+@admin.register(models.BranchAssignment)
+class BranchAssignmentAdmin(admin.ModelAdmin):
+    list_display = ('branch', 'member', 'member_role', 'assigned_at')
+    list_filter = ('branch', 'member__role', 'assigned_at')
+    search_fields = ('member__name', 'member__login_id', 'branch__branch_name')
+    ordering = ('branch', 'member')
+    
+    # 배정일은 자동 생성되므로 읽기 전용으로 설정
+    readonly_fields = ('assigned_at',)
+
+    def member_role(self, obj):
+        """관리자의 역할을 리스트에서 바로 확인"""
+        return obj.member.get_role_display()
+    member_role.short_description = '직급'
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """
+        관리자 배정 시, 드롭다운 목록에 '고객(Customer)'이나 '총괄(Admin)'은 뜨지 않게 필터링
+        오직 지점 관리자와 테마 관리자만 보이도록 설정
+        """
+        if db_field.name == "member":
+            kwargs["queryset"] = models.Member.objects.filter(
+                role__in=['BranchManager', 'ThemeManager']
+            ).order_by('name')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)

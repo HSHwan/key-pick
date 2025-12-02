@@ -226,3 +226,17 @@ a {
     color: #4e54c8;
     font-weight: 700;
 }
+.navbar .dropdown-menu .dropdown-item {
+    color: #333 !important;
+}
+
+.navbar .dropdown-menu .dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #4e54c8 !important;
+}
+.navbar .dropdown-menu .dropdown-item.text-danger {
+    color: #dc3545 !important;
+}
+.navbar .dropdown-menu .dropdown-item.text-danger:hover {
+    background-color: #fff5f5;
+}
