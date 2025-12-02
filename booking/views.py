@@ -309,13 +309,19 @@ def review_update_view(request, review_id):
     }
     return render(request, 'booking/review_form.html', context)
 
-# 관리자 대시보드 (Manager Dashboard)
 @login_required
 def theme_manager_dashboard_view(request):
     """테마 관리자 대시보드"""
     if request.user.role not in ['ThemeManager', 'BranchManager', 'Admin']:
         raise PermissionDenied("테마 관리자 권한이 필요합니다.")
     
+    if request.user.role == 'Admin':
+        target_branch_ids = Branch.objects.filter(is_active=True).values_list('branch_id', flat=True)
+    else:
+        target_branch_ids = BranchAssignment.objects.filter(
+            member=request.user
+        ).values_list('branch_id', flat=True)
+
     # 시설 문제 보고 처리 (POST)
     if request.method == 'POST':
         issue_form = IssueReportForm(request.POST)
@@ -327,17 +333,18 @@ def theme_manager_dashboard_view(request):
             return redirect('theme-manager-dashboard')
     else:
         issue_form = IssueReportForm()
+    
+    issue_form.fields['theme'].queryset = Theme.objects.filter(
+        branch_id__in=target_branch_ids, 
+        is_active=True
+    )
 
     today = date.today()
     
-    if request.user.role == 'BranchManager':
-        reservations = Reservation.objects.filter(
-            reservation_time__date=today
-        ).select_related('member', 'theme', 'theme__branch').order_by('reservation_time')
-    else:
-        reservations = Reservation.objects.filter(
-            reservation_time__date=today
-        ).select_related('member', 'theme', 'theme__branch').order_by('reservation_time')
+    reservations = Reservation.objects.filter(
+        reservation_time__date=today,
+        theme__branch_id__in=target_branch_ids
+    ).select_related('member', 'theme', 'theme__branch').order_by('reservation_time')
     
     stats = {
         'total': reservations.count(),
@@ -348,10 +355,13 @@ def theme_manager_dashboard_view(request):
     }
     
     recent_issues = IssueReport.objects.filter(
-        status__in=['Reported', 'InProgress']
+        status__in=['Reported', 'InProgress'],
+        theme__branch_id__in=target_branch_ids
     ).select_related('theme', 'reported_by_member').order_by('-reported_at')[:5]
 
-    themes = Theme.objects.all().order_by('branch', 'name')
+    themes = Theme.objects.filter(
+        branch_id__in=target_branch_ids
+    ).order_by('branch', 'name')
     
     context = {
         'reservations': reservations,
@@ -377,8 +387,22 @@ def branch_manager_dashboard_view(request):
     else:
         month_end = today.replace(month=today.month + 1, day=1) - timedelta(days=1)
     
-    branches = Branch.objects.filter(is_active=True)
+    # 접속한 사용자의 권한에 따라 조회할 지점 목록 필터링
+    if request.user.role == 'Admin':
+        # 총괄 관리자는 모든 활성 지점 조회
+        branches = Branch.objects.filter(is_active=True)
+    else:
+        # 지점 관리자는 본인이 배정된 지점만 조회
+        assigned_branch_ids = BranchAssignment.objects.filter(
+            member=request.user
+        ).values_list('branch_id', flat=True)
+        
+        branches = Branch.objects.filter(
+            branch_id__in=assigned_branch_ids,
+            is_active=True
+        )
     
+    # 위에서 필터링된 branches에 대해서만 매출 계산
     branch_sales = []
     for branch in branches:
         sales = Payment.objects.filter(
@@ -391,7 +415,6 @@ def branch_manager_dashboard_view(request):
             count=Count('payment_id')
         )
         
-        # 0으로 나누기 방지 및 평균 계산 (템플릿 계산 오류 해결)
         total = sales['total'] or 0
         count = sales['count'] or 0
         if count > 0:
@@ -409,13 +432,17 @@ def branch_manager_dashboard_view(request):
     week_start = today
     week_end = today + timedelta(days=7)
     
+    # 스케줄 조회 시 내 지점(branches)에 해당하는 것만 필터링
     schedules = Schedule.objects.filter(
+        branch__in=branches,
         work_date__gte=week_start,
         work_date__lte=week_end
     ).select_related('member', 'branch', 'assigned_theme').order_by('work_date', 'start_time')
     
+    # 내 지점(branches)에 해당하는 테마만 필터링
     theme_stats = Theme.objects.filter(
-        is_active=True
+        is_active=True,
+        branch__in=branches
     ).annotate(
         reservation_count=Count(
             'reservation',
