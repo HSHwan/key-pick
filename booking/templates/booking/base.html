@@ -1,51 +1,95 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <title>{% block title %}Key-Pick (방탈출 예약){% endblock %}</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Key-Pick{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'booking/css/style.css' %}">
-  </head>
-  <body>
-    <nav class="navbar">
-      <div class="nav-brand">
-        <a href="{% url 'theme-list' %}">Key-Pick</a>
-      </div>
-      <div class="nav-links">
-        <a href="{% url 'theme-list' %}">테마 목록</a>
-        
-        {% if user.is_authenticated %}
-            <a href="{% url 'my-page' %}">마이페이지 ({{ user.name }}님)</a>
-            <a href="{% url 'notice-list' %}">📢 공지사항</a>
-            {% if user.role in 'ThemeManager,BranchManager,Admin' %}
-                <a href="{% url 'theme-manager-dashboard' %}" style="color: #ffc107;">📋 대시보드</a>
-            {% endif %}
-            
-            {% if user.role in 'BranchManager,Admin' %}
-                <a href="{% url 'branch-manager-stats' %}" style="color: #28a745;">📊 통계</a>
-            {% endif %}
+</head>
+<body class="d-flex flex-column min-vh-100">
 
-            {% if user.role == 'Admin' %}
-                <a class="nav-link" href="{% url 'admin-global-stats' %}" style="color: #dc3545; font-weight: bold;">📊 전체 통계 분석</a>
-            {% endif %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="{% url 'root' %}">
+                🗝️ Key-Pick
+            </a>
 
-            {% if user.is_staff %}
-                <a href="/admin/" target="_blank" style="color: #dc3545;">⚙️ Admin</a>
-            {% endif %}
-            
-            <a href="{% url 'logout' %}">로그아웃</a>
-        {% else %}
-            <a href="{% url 'login' %}">로그인</a>
-            <a href="{% url 'signup' %}">회원가입</a>
-        {% endif %}
-      </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center gap-2">
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'theme-list' %}">테마 목록</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'notice-list' %}">📢 공지사항</a>
+                    </li>
+
+                    {% if user.is_authenticated %}
+                        {% if user.role == 'Admin' %}
+                            <li class="nav-item">
+                                <a class="btn btn-sm btn-outline-danger fw-bold" href="{% url 'admin-global-stats' %}">📊 전체 통계</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/admin">⚙️ Admin</a>
+                            </li>
+                        {% endif %}
+
+                        {% if user.role == 'BranchManager' %}
+                            <li class="nav-item">
+                                <a class="btn btn-sm btn-outline-primary fw-bold" href="{% url 'branch-manager-stats' %}">🏢 지점 관리</a>
+                            </li>
+                        {% endif %}
+
+                        {% if user.role == 'ThemeManager' %}
+                            <li class="nav-item">
+                                <a class="btn btn-sm btn-outline-success fw-bold" href="{% url 'theme-manager-dashboard' %}">🧩 테마 관리</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="nav-item dropdown ms-2">
+                            <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                👤 {{ user.name }}님 <small class="text-secondary">({{ user.get_role_display }})</small>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'my-page' %}">마이페이지</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">로그아웃</a></li>
+                            </ul>
+                        </li>
+
+                    {% else %}
+                        <li class="nav-item ms-2">
+                            <a class="nav-link" href="{% url 'login' %}">로그인</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary btn-sm px-3" href="{% url 'signup' %}">회원가입</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
     </nav>
 
-    <div class="container">
-        {% block content %} {% endblock %}
-    </div>
+    <main class="flex-grow-1">
+        {% block content %}
+        {% endblock %}
+    </main>
 
-    <footer class="footer">
-        <p>&copy; 2025 Key-Pick. All rights reserved.</p>
+    <footer class="py-4 bg-light text-center text-muted border-top mt-5">
+        <div class="container">
+            <p class="mb-1 fw-bold">Key-Pick Escape Room</p>
+            <p class="small mb-0">Databases Programming Project &copy; 2025</p>
+        </div>
     </footer>
-  </body>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
