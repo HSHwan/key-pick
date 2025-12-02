@@ -105,24 +105,41 @@
     <hr style="margin-top: 40px;">
     
     <div class="theme-stats-section">
-        <h2>🏆 테마별 예약 현황 TOP 10 (이번 달)</h2>
+        <h2>🏆 테마별 예약 현황 및 관리</h2>
         
         <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
             <thead style="background: #28a745; color: white;">
                 <tr>
                     <th style="padding: 10px; text-align: center;">순위</th>
                     <th style="padding: 10px; text-align: left;">테마명</th>
-                    <th style="padding: 10px; text-align: left;">지점</th>
-                    <th style="padding: 10px; text-align: center;">완료 예약 수</th>
+                    <th style="padding: 10px; text-align: center;">상태</th> <th style="padding: 10px; text-align: center;">완료 예약 수</th>
                     <th style="padding: 10px; text-align: center;">평균 별점</th>
-                </tr>
+                    <th style="padding: 10px; text-align: center;">관리</th> </tr>
             </thead>
             <tbody>
                 {% for theme in theme_stats %}
                     <tr style="border-bottom: 1px solid #ddd;">
                         <td style="padding: 10px; text-align: center; font-weight: bold;">{{ forloop.counter }}</td>
-                        <td style="padding: 10px;"><strong>{{ theme.name }}</strong></td>
-                        <td style="padding: 10px;">{{ theme.branch.branch_name }}</td>
+                        <td style="padding: 10px;">
+                            <strong>{{ theme.name }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                {{ theme.branch.branch_name }} | 
+                                {{ theme.price }}원 
+                                {% if theme.discount_rate > 0 %}
+                                    <span style="color: #dc3545;">({{ theme.discount_rate }}% 할인)</span>
+                                {% endif %}
+                            </small>
+                        </td>
+                        
+                        <td style="padding: 10px; text-align: center;">
+                            {% if theme.status == 'Ready' %}
+                                <span style="background-color: #198754; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">운영중</span>
+                            {% else %}
+                                <span style="background-color: #dc3545; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">점검중</span>
+                            {% endif %}
+                        </td>
+
                         <td style="padding: 10px; text-align: center; font-size: 1.1em; color: #007bff;">
                             {{ theme.reservation_count }}건
                         </td>
@@ -132,6 +149,13 @@
                             {% else %}
                                 <span style="color: #888;">-</span>
                             {% endif %}
+                        </td>
+                        
+                        <td style="padding: 10px; text-align: center;">
+                            <a href="{% url 'branch-theme-update' theme.theme_id %}" 
+                               style="background-color: #6c757d; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 0.9em;">
+                                ⚙️ 설정 수정
+                            </a>
                         </td>
                     </tr>
                 {% endfor %}

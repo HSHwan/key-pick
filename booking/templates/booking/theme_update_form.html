@@ -1,0 +1,121 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}테마 정보 수정{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">🛠️ 테마 정보 수정</h2>
+            <p class="text-muted mb-0">
+                <span class="badge bg-secondary me-2">{{ theme.branch.branch_name }}</span>
+                <strong>{{ theme.name }}</strong>
+            </p>
+        </div>
+        <a href="{% url 'branch-manager-stats' %}" class="btn btn-outline-secondary">
+            ↩️ 대시보드로 돌아가기
+        </a>
+    </div>
+
+    <div class="content-box">
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    {% for error in form.non_field_errors %}
+                        <div>⚠️ {{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="mb-5">
+                <h4 class="mb-3 text-primary border-bottom pb-2">💰 가격 및 할인 설정</h4>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="{{ form.price.id_for_label }}" class="form-label">기본 가격 (1인)</label>
+                        <div class="input-group has-validation">
+                            {{ form.price }}
+                            <span class="input-group-text">원</span>
+                            {% if form.price.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.price.errors|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-text mt-1">평일/주말 구분 없는 1인 기준 요금입니다.</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.discount_rate.id_for_label }}" class="form-label">이벤트 할인율</label>
+                        <div class="input-group has-validation">
+                            {{ form.discount_rate }}
+                            <span class="input-group-text">%</span>
+                            {% if form.discount_rate.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.discount_rate.errors|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-text mt-1 text-danger">
+                            ※ 설정 시 결제 금액에 즉시 반영됩니다.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="mb-3 text-primary border-bottom pb-2">🚦 운영 상태 관리</h4>
+
+                <div class="mb-4">
+                    <label for="{{ form.status.id_for_label }}" class="form-label">현재 운영 상태</label>
+                    {{ form.status }}
+                    
+                    {% if form.status.errors %}
+                        <div class="text-danger small mt-1">{{ form.status.errors|first }}</div>
+                    {% endif %}
+
+                    <div class="mt-3 p-3 bg-white border rounded">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-success rounded-pill me-2" style="min-width: 70px;">운영 가능</span>
+                            <span class="text-muted small">고객이 정상적으로 예약할 수 있는 상태입니다.</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-danger rounded-pill me-2" style="min-width: 70px;">점검 중</span>
+                            <span class="text-muted small">시설 점검 등으로 고객 예약을 차단합니다.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-check form-switch p-3 border rounded bg-light">
+                    {{ form.is_active }}
+                    <label class="form-check-label fw-bold ms-2" for="{{ form.is_active.id_for_label }}">
+                        테마 노출 활성화
+                    </label>
+                    <div class="text-muted small mt-1">
+                        체크 해제 시 테마 목록에서 <strong>완전히 숨겨집니다.</strong> (폐쇄 시 사용)
+                    </div>
+                    {% if form.is_active.errors %}
+                        <div class="text-danger small mt-1">{{ form.is_active.errors|first }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 pt-4 border-top mt-5">
+                <a href="{% url 'branch-manager-stats' %}" 
+                   style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block;">
+                    취소
+                </a>
+                
+                <button type="submit" 
+                        style="background: #0d6efd; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                    💾 수정 사항 저장
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}
