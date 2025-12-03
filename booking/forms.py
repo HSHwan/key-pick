@@ -1,6 +1,6 @@
 # booking/forms.py
 from django import forms
-from .models import Review, Reservation, IssueReport, Schedule, Theme, Notice
+from .models import *
 
 # 리뷰 폼
 class ReviewForm(forms.ModelForm):
@@ -57,10 +57,45 @@ class ScheduleForm(forms.ModelForm):
             'work_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
             'end_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
-            'member': forms.Select(attrs={'class': 'form-control'}),
-            'branch': forms.Select(attrs={'class': 'form-control'}),
-            'assigned_theme': forms.Select(attrs={'class': 'form-control'}),
+            'member': forms.Select(attrs={'class': 'form-select'}),
+            'branch': forms.Select(attrs={'class': 'form-select'}),
+            'assigned_theme': forms.Select(attrs={'class': 'form-select'}),
         }
+        labels = {
+            'member': '담당 직원',
+            'branch': '근무 지점',
+            'assigned_theme': '배정 테마 (선택)',
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(ScheduleForm, self).__init__(*args, **kwargs)
+
+        if user:
+            if user.role == 'BranchManager':
+                my_branch_ids = BranchAssignment.objects.filter(member=user).values_list('branch_id', flat=True)
+                
+                self.fields['branch'].queryset = Branch.objects.filter(
+                    branch_id__in=my_branch_ids, 
+                    is_active=True
+                )
+                
+                my_staff_ids = BranchAssignment.objects.filter(
+                    branch_id__in=my_branch_ids,
+                    member__role='ThemeManager'
+                ).values_list('member_id', flat=True)
+                
+                self.fields['member'].queryset = Member.objects.filter(
+                    member_id__in=my_staff_ids
+                )
+
+                self.fields['assigned_theme'].queryset = Theme.objects.filter(
+                    branch_id__in=my_branch_ids, 
+                    is_active=True
+                )
+
+            elif user.role == 'Admin':
+                pass
 
 # 지점 관리자용 테마 수정 폼
 class BranchThemeUpdateForm(forms.ModelForm):

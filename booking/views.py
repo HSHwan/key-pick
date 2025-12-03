@@ -637,18 +637,21 @@ def schedule_create_view(request):
         raise PermissionDenied("지점 관리자 권한이 필요합니다.")
         
     if request.method == 'POST':
-        form = ScheduleForm(request.POST)
+        form = ScheduleForm(request.POST, user=request.user)
         if form.is_valid():
             schedule = form.save(commit=False)
-            # 지점 정보가 없으면 첫 번째 활성 지점으로 자동 할당
-            if not schedule.branch_id:
-                 first_branch = Branch.objects.filter(is_active=True).first()
-                 if first_branch:
-                     schedule.branch = first_branch
+            if request.user.role == 'BranchManager':
+                is_my_branch = BranchAssignment.objects.filter(
+                    member=request.user, 
+                    branch=schedule.branch
+                ).exists()
+                if not is_my_branch:
+                    raise PermissionDenied("본인이 담당하는 지점의 스케줄만 등록할 수 있습니다.")
+            
             schedule.save()
             return redirect('branch-manager-stats')
     else:
-        form = ScheduleForm()
+        form = ScheduleForm(user=request.user)
         
     context = {'form': form}
     return render(request, 'booking/schedule_form.html', context)
@@ -755,17 +758,32 @@ def schedule_update_view(request, schedule_id):
         
     schedule = get_object_or_404(Schedule, schedule_id=schedule_id)
     
-    # 지점 관리자는 본인 담당 지점의 스케줄만 수정 가능하도록 체크 (선택 사항)
-    # 현재 모델 구조상 엄격한 체크가 어렵다면 일단 권한만 확인합니다.
+    if request.user.role == 'BranchManager':
+        is_my_branch = BranchAssignment.objects.filter(
+            member=request.user,
+            branch=schedule.branch
+        ).exists()
+        
+        if not is_my_branch:
+            raise PermissionDenied("본인이 담당하는 지점의 스케줄만 수정할 수 있습니다.")
 
     if request.method == 'POST':
-        form = ScheduleForm(request.POST, instance=schedule)
+        form = ScheduleForm(request.POST, instance=schedule, user=request.user)
         if form.is_valid():
-            form.save()
+            updated_schedule = form.save(commit=False)
+            if request.user.role == 'BranchManager':
+                 is_still_my_branch = BranchAssignment.objects.filter(
+                    member=request.user, 
+                    branch=updated_schedule.branch
+                ).exists()
+                 if not is_still_my_branch:
+                     raise PermissionDenied("본인 담당 지점으로만 설정 가능합니다.")
+            
+            updated_schedule.save()
             messages.success(request, "스케줄이 수정되었습니다.")
             return redirect('branch-manager-stats')
     else:
-        form = ScheduleForm(instance=schedule)
+        form = ScheduleForm(instance=schedule, user=request.user)
         
     context = {'form': form}
     return render(request, 'booking/schedule_form.html', context)
@@ -778,6 +796,16 @@ def schedule_delete_view(request, schedule_id):
         raise PermissionDenied("권한이 없습니다.")
         
     schedule = get_object_or_404(Schedule, schedule_id=schedule_id)
+    
+    if request.user.role == 'BranchManager':
+        is_my_branch = BranchAssignment.objects.filter(
+            member=request.user,
+            branch=schedule.branch
+        ).exists()
+        
+        if not is_my_branch:
+            raise PermissionDenied("본인이 담당하는 지점의 스케줄만 삭제할 수 있습니다.")
+            
     schedule.delete()
     messages.success(request, "스케줄이 삭제되었습니다.")
     
