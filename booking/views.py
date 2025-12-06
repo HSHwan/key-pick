@@ -1,7 +1,7 @@
 # booking/views.py
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Count, Sum, Q, Avg, DecimalField
+from django.db.models import Count, Sum, Q, Avg, DecimalField, Value
 from django.db.models.functions import TruncDate, Coalesce
 from django.contrib.auth import logout, login, authenticate
 from django.shortcuts import render, get_object_or_404, redirect
@@ -26,7 +26,7 @@ def theme_list_view(request):
     
     # 기본 쿼리셋
     themes = Theme.objects.filter(is_active=True, status='Ready').annotate(
-        avg_rating=Avg('reservation__review__rating'),
+        avg_rating=Coalesce(Avg('reservation__review__rating'), Value(0.0)),
         review_count=Count('reservation__review')
     )
     
@@ -530,22 +530,22 @@ def admin_global_stats_view(request):
     end_date = timezone.now().date()
     start_date = end_date - timedelta(days=29)
     
-    daily_reservations = Reservation.objects.filter(
+    daily_reservations = list(Reservation.objects.filter(
         reservation_time__date__range=(start_date, end_date)
     ).annotate(
         date=TruncDate('reservation_time')
     ).values('date').annotate(
         count=Count('reservation_id')
-    ).order_by('date')
+    ).order_by('date'))
 
-    daily_signups = Member.objects.filter(
+    daily_signups = list(Member.objects.filter(
         created_at__date__range=(start_date, end_date)
     ).annotate(
         date=TruncDate('created_at')
     ).values('date').annotate(
         count=Count('member_id')
-    ).order_by('date')
-    
+    ).order_by('date'))    
+
     context = {
         'branch_stats': branch_stats,
         'best_themes': best_themes,

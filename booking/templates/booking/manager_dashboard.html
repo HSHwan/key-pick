@@ -3,214 +3,223 @@
 {% block title %}테마 관리자 대시보드{% endblock %}
 
 {% block content %}
-<div class="manager-dashboard">
-    <h1>📋 테마 관리자 대시보드</h1>
-    <p><strong>{{ user.name }}</strong>님 ({{ user.get_role_display }})</p>
-    <p>오늘 날짜: {{ today|date:"Y년 m월 d일" }}</p>
-    
-    <hr>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="fw-bold mb-0">📋 테마 관리자 대시보드</h2>
+            <p class="text-muted mt-1 mb-0">
+                <strong>{{ user.name }}</strong>님 ({{ user.get_role_display }}) | {{ today|date:"Y년 m월 d일" }}
+            </p>
+        </div>
+        <a href="{% url 'my-page' %}" class="btn btn-outline-secondary btn-sm">내 정보 보기</a>
+    </div>
 
-    <!-- 오늘의 예약 현황 통계 -->
-    <div class="stats-section" style="background: #f4f4f4; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-        <h2>📊 오늘의 예약 현황</h2>
-        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px;">
-            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
-                <div style="font-size: 2em; font-weight: bold; color: #333;">{{ stats.total }}</div>
-                <div style="color: #888;">전체 예약</div>
+    <div class="row g-3 mb-4">
+        <div class="col">
+            <div class="content-box text-center p-3 h-100 d-flex flex-column justify-content-center">
+                <h3 class="fw-bold mb-0">{{ stats.total }}</h3>
+                <small class="text-muted">전체 예약</small>
             </div>
-            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
-                <div style="font-size: 2em; font-weight: bold; color: #007bff;">{{ stats.confirmed }}</div>
-                <div style="color: #888;">예약 확정</div>
+        </div>
+        <div class="col">
+            <div class="content-box text-center p-3 h-100 d-flex flex-column justify-content-center border-start border-4 border-primary">
+                <h3 class="fw-bold text-primary mb-0">{{ stats.confirmed }}</h3>
+                <small class="text-muted">예약 확정</small>
             </div>
-            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
-                <div style="font-size: 2em; font-weight: bold; color: #28a745;">{{ stats.checked_in }}</div>
-                <div style="color: #888;">입실 완료</div>
+        </div>
+        <div class="col">
+            <div class="content-box text-center p-3 h-100 d-flex flex-column justify-content-center border-start border-4 border-success">
+                <h3 class="fw-bold text-success mb-0">{{ stats.checked_in }}</h3>
+                <small class="text-muted">입실 완료</small>
             </div>
-            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
-                <div style="font-size: 2em; font-weight: bold; color: #6c757d;">{{ stats.completed }}</div>
-                <div style="color: #888;">이용 완료</div>
+        </div>
+        <div class="col">
+            <div class="content-box text-center p-3 h-100 d-flex flex-column justify-content-center border-start border-4 border-secondary">
+                <h3 class="fw-bold text-secondary mb-0">{{ stats.completed }}</h3>
+                <small class="text-muted">이용 완료</small>
             </div>
-            <div class="stat-card" style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
-                <div style="font-size: 2em; font-weight: bold; color: #dc3545;">{{ stats.cancelled }}</div>
-                <div style="color: #888;">취소</div>
+        </div>
+        <div class="col">
+            <div class="content-box text-center p-3 h-100 d-flex flex-column justify-content-center border-start border-4 border-danger">
+                <h3 class="fw-bold text-danger mb-0">{{ stats.cancelled }}</h3>
+                <small class="text-muted">취소</small>
             </div>
         </div>
     </div>
     
-    <hr>
-    
-    <!-- 오늘의 예약 목록 -->
-    <div class="reservation-list-section">
-        <h2>📅 오늘의 예약 목록</h2>
+    <div class="content-box">
+        <h4 class="fw-bold mb-3">📅 오늘의 예약 목록</h4>
         
-        {% if reservations %}
-            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-                <thead style="background: #333; color: white;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
                     <tr>
-                        <th style="padding: 10px; text-align: left;">예약 번호</th>
-                        <th style="padding: 10px; text-align: left;">시간</th>
-                        <th style="padding: 10px; text-align: left;">테마</th>
-                        <th style="padding: 10px; text-align: left;">지점</th>
-                        <th style="padding: 10px; text-align: left;">예약자</th>
-                        <th style="padding: 10px; text-align: center;">인원</th>
-                        <th style="padding: 10px; text-align: center;">상태</th>
-                        <th style="padding: 10px; text-align: center;">관리</th>
+                        <th>예약 번호</th>
+                        <th>시간</th>
+                        <th>테마</th>
+                        <th>지점</th>
+                        <th>예약자</th>
+                        <th class="text-center">인원</th>
+                        <th class="text-center">상태</th>
+                        <th class="text-center">관리</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for reservation in reservations %}
-                        <tr style="border-bottom: 1px solid #ddd;">
-                            <td style="padding: 10px;">{{ reservation.reservation_id }}</td>
-                            <td style="padding: 10px;">{{ reservation.reservation_time|date:"H:i" }}</td>
-                            <td style="padding: 10px;"><strong>{{ reservation.theme.name }}</strong></td>
-                            <td style="padding: 10px;">{{ reservation.theme.branch.branch_name }}</td>
-                            <td style="padding: 10px;">{{ reservation.member.name|default:"탈퇴회원" }}</td>
-                            <td style="padding: 10px; text-align: center;">{{ reservation.num_of_participants }}명</td>
-                            <td style="padding: 10px; text-align: center;">
-                                {% if reservation.status == 'Confirmed' %}
-                                    <span style="color: #007bff; font-weight: bold;">● {{ reservation.get_status_display }}</span>
-                                {% elif reservation.status == 'CheckedIn' %}
-                                    <span style="color: #28a745; font-weight: bold;">● {{ reservation.get_status_display }}</span>
-                                {% elif reservation.status == 'Completed' %}
-                                    <span style="color: #6c757d; font-weight: bold;">● {{ reservation.get_status_display }}</span>
-                                {% elif reservation.status == 'Cancelled' %}
-                                    <span style="color: #dc3545; font-weight: bold;">● {{ reservation.get_status_display }}</span>
-                                {% else %}
-                                    <span style="color: #ffc107; font-weight: bold;">● {{ reservation.get_status_display }}</span>
-                                {% endif %}
+                        <tr>
+                            <td>#{{ reservation.reservation_id }}</td>
+                            <td>{{ reservation.reservation_time|date:"H:i" }}</td>
+                            <td><strong>{{ reservation.theme.name }}</strong></td>
+                            <td>{{ reservation.theme.branch.branch_name }}</td>
+                            <td>
+                                {{ reservation.member.name|default:"탈퇴회원" }}
                             </td>
-                            <td style="padding: 10px; text-align: center;">
+                            <td class="text-center">{{ reservation.num_of_participants }}명</td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill 
+                                    {% if reservation.status == 'Confirmed' %}bg-primary
+                                    {% elif reservation.status == 'CheckedIn' %}bg-success
+                                    {% elif reservation.status == 'Completed' %}bg-secondary
+                                    {% elif reservation.status == 'Cancelled' %}bg-danger
+                                    {% else %}bg-warning text-dark{% endif %}">
+                                    {{ reservation.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-center">
                                 {% if reservation.status == 'Confirmed' %}
                                     <a href="{% url 'checkin-update' reservation.reservation_id %}" 
-                                       style="background: #28a745; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9em;" onclick="return confirm('입실 처리 하시겠습니까?')"></a>
-                                        입실 확인
-                                    </a>
-                                    <a href="{% url 'noshow-update' reservation.reservation_id %}" class="btn-sm"
-                                    style="background: #dc3545; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9em;" onclick="return confirm('노쇼 처리 하시겠습니까?')">노쇼</a>
+                                       class="btn btn-sm btn-success"
+                                       onclick="return confirm('입실 처리 하시겠습니까?')">입실</a>
+                                    <a href="{% url 'noshow-update' reservation.reservation_id %}" 
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('노쇼 처리 하시겠습니까?')">노쇼</a>
                                 {% elif reservation.status == 'CheckedIn' %}
                                     <a href="{% url 'complete-reservation' reservation.reservation_id %}" 
-                                       style="background: #007bff; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.9em;">
-                                        완료
-                                    </a>
+                                       class="btn btn-sm btn-primary">완료 처리</a>
                                 {% else %}
-                                    <span style="color: #888;">-</span>
+                                    <span class="text-muted">-</span>
                                 {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                오늘 예정된 예약이 없습니다.
                             </td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        {% else %}
-            <p style="margin-top: 20px; color: #888;">오늘 예약된 건이 없습니다.</p>
-        {% endif %}
+        </div>
     </div>
     
-    <hr style="margin-top: 40px;">
-    
-    <!-- 최근 문제 보고 -->
-    <div class="issue-report-section">
-        <h2>🚨 최근 문제 보고 (미해결)</h2>
-        <a href="{% url 'issue-create' %}" class="btn" style="background: #ffc107; padding: 8px 15px; border-radius: 4px; text-decoration: none; color: black; font-weight: bold;">
-            + 새 문제 보고
-        </a>
-        {% if recent_issues %}
-            <div style="margin-top: 20px;">
-                {% for issue in recent_issues %}
-                    <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <div>
-                                <strong style="font-size: 1.1em;">{{ issue.theme.name }}</strong>
-                                <span style="color: #888; font-size: 0.9em;">({{ issue.theme.branch.branch_name }})</span>
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="content-box h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold mb-0">🚨 최근 문제 보고 (미해결)</h4>
+                    <a href="{% url 'issue-create' %}" class="btn btn-warning btn-sm fw-bold">
+                        + 새 보고
+                    </a>
+                </div>
+                
+                {% if recent_issues %}
+                    <div class="list-group list-group-flush">
+                        {% for issue in recent_issues %}
+                            <div class="list-group-item px-0">
+                                <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                                    <div>
+                                        <strong class="text-dark">{{ issue.theme.name }}</strong>
+                                        <small class="text-muted">({{ issue.theme.branch.branch_name }})</small>
+                                    </div>
+                                    <span class="badge {% if issue.status == 'Reported' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                        {{ issue.get_status_display }}
+                                    </span>
+                                </div>
+                                <p class="mb-1 text-secondary small">{{ issue.issue_description }}</p>
+                                <small class="text-muted">
+                                    {{ issue.reported_by_member.name|default:"시스템" }} | {{ issue.reported_at|date:"Y.m.d H:i" }}
+                                </small>
                             </div>
-                            <div>
-                                {% if issue.status == 'Reported' %}
-                                    <span style="color: #dc3545; font-weight: bold;">● 보고됨</span>
-                                {% elif issue.status == 'InProgress' %}
-                                    <span style="color: #ffc107; font-weight: bold;">● 처리 중</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <p style="margin: 10px 0; color: #555;">{{ issue.issue_description }}</p>
-                        <div style="font-size: 0.9em; color: #888;">
-                            보고자: {{ issue.reported_by_member.name|default:"시스템" }} | 
-                            보고 시간: {{ issue.reported_at|date:"Y.m.d H:i" }}
-                        </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p style="margin-top: 20px; color: #888;">미해결 문제 보고가 없습니다.</p>
-        {% endif %}
-    </div>
-
-    <div class="issue-report-form-section" style="background: #fff3cd; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-        <h3>📝 시설 문제 보고하기</h3>
-        <form method="POST">
-            {% csrf_token %}
-            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <div style="flex: 1;">
-                    {{ issue_form.theme.label_tag }}
-                    {{ issue_form.theme }}
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        현재 미해결된 문제 보고가 없습니다.
+                    </div>
+                {% endif %}
+                
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6 class="fw-bold mb-2">📝 간편 보고 등록</h6>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-2">
+                            {{ issue_form.theme }}
+                        </div>
+                        <div class="mb-2">
+                            {{ issue_form.issue_description }}
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-warning btn-sm">보고 등록</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-            <div style="margin-bottom: 10px;">
-                {{ issue_form.issue_description.label_tag }}
-                {{ issue_form.issue_description }}
-            </div>
-            <button type="submit" style="background: #ffc107; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px;">보고 등록</button>
-        </form>
-    </div>
-    
-    <div class="theme-management-section">
-        <h2>🔑 테마 운영 상태 관리</h2>
-        <p style="color: #666; font-size: 0.9em;">'점검 중' 상태로 변경하면 고객이 예약을 할 수 없습니다.</p>
-        
-        <table style="width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <thead style="background: #333; color: white;">
-                <tr>
-                    <th style="padding: 12px; text-align: left;">지점</th>
-                    <th style="padding: 12px; text-align: left;">테마명</th>
-                    <th style="padding: 12px; text-align: center;">현재 상태</th>
-                    <th style="padding: 12px; text-align: center;">관리</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for theme in themes %}
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 12px;">{{ theme.branch.branch_name }}</td>
-                        <td style="padding: 12px;"><strong>{{ theme.name }}</strong></td>
-                        <td style="padding: 12px; text-align: center;">
-                            {% if theme.status == 'Ready' %}
-                                <span style="color: #28a745; font-weight: bold; background: #e6f9e6; padding: 5px 10px; border-radius: 20px; font-size: 0.9em;">
-                                    ● 운영 가능
-                                </span>
-                            {% else %}
-                                <span style="color: #dc3545; font-weight: bold; background: #ffe6e6; padding: 5px 10px; border-radius: 20px; font-size: 0.9em;">
-                                    ● 점검 중
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 12px; text-align: center;">
-                            <form action="{% url 'theme-status-toggle' theme.theme_id %}" method="POST">
-                                {% csrf_token %}
-                                {% if theme.status == 'Ready' %}
-                                    <button type="submit" onclick="return confirm('{{ theme.name }} 예약을 막으시겠습니까?');"
-                                            style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                                        점검 전환 (예약 막기)
-                                    </button>
-                                {% else %}
-                                    <button type="submit" onclick="return confirm('{{ theme.name }} 예약을 다시 받으시겠습니까?');"
-                                            style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">
-                                        운영 재개 (예약 열기)
-                                    </button>
-                                {% endif %}
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        </div>
 
+        <div class="col-lg-6">
+            <div class="content-box h-100">
+                <h4 class="fw-bold mb-3">🔑 테마 운영 상태 관리</h4>
+                <div class="alert alert-info py-2 small mb-3">
+                    <i class="bi bi-info-circle"></i> '점검 중' 상태로 변경하면 고객 예약이 차단됩니다.
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>지점/테마</th>
+                                <th class="text-center">상태</th>
+                                <th class="text-center">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for theme in themes %}
+                                <tr>
+                                    <td>
+                                        <small class="text-muted d-block">{{ theme.branch.branch_name }}</small>
+                                        <strong>{{ theme.name }}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if theme.status == 'Ready' %}
+                                            <span class="badge bg-success">운영 중</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">점검 중</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <form action="{% url 'theme-status-toggle' theme.theme_id %}" method="POST">
+                                            {% csrf_token %}
+                                            {% if theme.status == 'Ready' %}
+                                                <button type="submit" onclick="return confirm('{{ theme.name }} 예약을 막으시겠습니까?');"
+                                                        class="btn btn-sm btn-outline-danger">
+                                                    점검 전환
+                                                </button>
+                                            {% else %}
+                                                <button type="submit" onclick="return confirm('{{ theme.name }} 예약을 다시 받으시겠습니까?');"
+                                                        class="btn btn-sm btn-outline-success">
+                                                    운영 재개
+                                                </button>
+                                            {% endif %}
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

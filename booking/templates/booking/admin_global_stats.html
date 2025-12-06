@@ -3,136 +3,137 @@
 {% block title %}전체 통계 분석 (Admin){% endblock %}
 
 {% block content %}
-<div class="admin-global-stats-dashboard">
-    <h1>📊 전체 통계 분석 (Admin)</h1>
-    <p class="text-muted" style="color: #666;">전체 지점 및 테마의 운영 현황을 통합 분석합니다.</p>
-    
-    <hr style="margin-top: 20px; margin-bottom: 40px;">
-
-    <div class="branch-sales-section">
-        <h2>🏢 지점별 매출 순위</h2>
-        
-        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-            <thead style="background: #007bff; color: white;">
-                <tr>
-                    <th style="padding: 12px; text-align: center;">순위</th>
-                    <th style="padding: 12px; text-align: left;">지점명</th>
-                    <th style="padding: 12px; text-align: center;">보유 테마</th>
-                    <th style="padding: 12px; text-align: center;">총 이용 건수 (완료)</th>
-                    <th style="padding: 12px; text-align: right;">총 매출액</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for stat in branch_stats %}
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 12px; text-align: center; font-weight: bold;">{{ forloop.counter }}</td>
-                        <td style="padding: 12px;"><strong>{{ stat.branch_name }}</strong></td>
-                        <td style="padding: 12px; text-align: center;">{{ stat.active_theme_count }}개</td>
-                        <td style="padding: 12px; text-align: center;">{{ stat.total_reservations }}건</td>
-                        <td style="padding: 12px; text-align: right; font-weight: bold; color: #28a745;">
-                            {{ stat.total_sales|default:"0"|floatformat:0 }}원
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="5" style="padding: 20px; text-align: center; color: #888;">데이터가 없습니다.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="container">
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">📊 전체 통계 분석 (Admin)</h2>
+        <p class="text-muted">전체 지점 및 테마의 운영 현황을 통합 분석합니다.</p>
     </div>
 
-    <hr style="margin-top: 40px; margin-bottom: 40px;">
-
-    <div class="theme-performance-section" style="display: flex; gap: 20px;">
-        <div style="flex: 1;">
-            <h2 style="color: #28a745;">🔥 인기 테마 TOP 5 (예약순)</h2>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-                <thead style="background: #28a745; color: white;">
+    <div class="content-box">
+        <h4 class="fw-bold mb-3">🏢 지점별 매출 순위</h4>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-primary">
                     <tr>
-                        <th style="padding: 10px; text-align: center;">순위</th>
-                        <th style="padding: 10px; text-align: left;">테마명 (지점)</th>
-                        <th style="padding: 10px; text-align: center;">이용 횟수</th>
-                        <th style="padding: 10px; text-align: center;">평균 별점</th>
+                        <th class="text-center">순위</th>
+                        <th>지점명</th>
+                        <th class="text-center">보유 테마</th>
+                        <th class="text-center">총 이용 건수 (완료)</th>
+                        <th class="text-end">총 매출액</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for theme in best_themes %}
-                        <tr style="border-bottom: 1px solid #ddd;">
-                            <td style="padding: 10px; text-align: center; font-weight: bold;">{{ forloop.counter }}</td>
-                            <td style="padding: 10px;">
-                                <strong>{{ theme.name }}</strong><br>
-                                <small style="color: #888;">({{ theme.branch.branch_name }})</small>
-                            </td>
-                            <td style="padding: 10px; text-align: center; font-weight: bold; color: #007bff;">
-                                {{ theme.res_count }}회
-                            </td>
-                            <td style="padding: 10px; text-align: center;">
-                                <span style="color: #ffc107;">⭐ {{ theme.avg_score|default:"-"|floatformat:1 }}</span>
+                    {% for stat in branch_stats %}
+                        <tr>
+                            <td class="text-center fw-bold">{{ forloop.counter }}</td>
+                            <td><strong>{{ stat.branch_name }}</strong></td>
+                            <td class="text-center">{{ stat.active_theme_count }}개</td>
+                            <td class="text-center">{{ stat.total_reservations }}건</td>
+                            <td class="text-end fw-bold text-success">
+                                {{ stat.total_sales|default:"0"|floatformat:0 }}원
                             </td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="4" style="padding: 15px; text-align: center; color: #888;">데이터가 없습니다.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div style="flex: 1;">
-            <h2 style="color: #dc3545;">📉 예약 저조 테마 TOP 5</h2>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-                <thead style="background: #dc3545; color: white;">
-                    <tr>
-                        <th style="padding: 10px; text-align: center;">순위</th>
-                        <th style="padding: 10px; text-align: left;">테마명 (지점)</th>
-                        <th style="padding: 10px; text-align: center;">이용 횟수</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for theme in worst_themes %}
-                        <tr style="border-bottom: 1px solid #ddd;">
-                            <td style="padding: 10px; text-align: center; font-weight: bold;">{{ forloop.counter }}</td>
-                            <td style="padding: 10px;">
-                                <strong>{{ theme.name }}</strong><br>
-                                <small style="color: #888;">({{ theme.branch.branch_name }})</small>
-                            </td>
-                            <td style="padding: 10px; text-align: center; font-weight: bold; color: #6c757d;">
-                                {{ theme.res_count }}회
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr><td colspan="3" style="padding: 15px; text-align: center; color: #888;">데이터가 없습니다.</td></tr>
+                        <tr><td colspan="5" class="text-center py-3">데이터가 없습니다.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 
-    <hr style="margin-top: 40px; margin-bottom: 40px;">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="content-box h-100">
+                <h4 class="fw-bold mb-3 text-success">🔥 인기 테마 TOP 5 <small class="text-muted fs-6">(예약순)</small></h4>
+                <table class="table table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">순위</th>
+                            <th>테마명 (지점)</th>
+                            <th class="text-center">횟수</th>
+                            <th class="text-center">별점</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for theme in best_themes %}
+                            <tr>
+                                <td class="text-center fw-bold">{{ forloop.counter }}</td>
+                                <td>
+                                    <div class="fw-bold">{{ theme.name }}</div>
+                                    <small class="text-muted">{{ theme.branch.branch_name }}</small>
+                                </td>
+                                <td class="text-center fw-bold text-primary">{{ theme.res_count }}회</td>
+                                <td class="text-center text-warning">⭐ {{ theme.avg_score|default:"-"|floatformat:1 }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="text-center py-3">데이터가 없습니다.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <div class="trend-chart-section">
-        <h2>📈 최근 30일 운영 추이 ({{ start_date|date:"Y.m.d" }} ~ {{ end_date|date:"Y.m.d" }})</h2>
-        <div style="margin-top: 20px; border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
-            <canvas id="trendChart" height="100"></canvas>
+        <div class="col-lg-6">
+            <div class="content-box h-100">
+                <h4 class="fw-bold mb-3 text-danger">📉 예약 저조 테마 TOP 5</h4>
+                <table class="table table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">순위</th>
+                            <th>테마명 (지점)</th>
+                            <th class="text-center">횟수</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for theme in worst_themes %}
+                            <tr>
+                                <td class="text-center fw-bold">{{ forloop.counter }}</td>
+                                <td>
+                                    <div class="fw-bold">{{ theme.name }}</div>
+                                    <small class="text-muted">{{ theme.branch.branch_name }}</small>
+                                </td>
+                                <td class="text-center fw-bold text-secondary">{{ theme.res_count }}회</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="3" class="text-center py-3">데이터가 없습니다.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
+    <div class="content-box mt-4">
+        <h4 class="fw-bold mb-3">📈 최근 30일 운영 추이 <small class="text-muted fw-normal fs-6">({{ start_date|date:"Y.m.d" }} ~ {{ end_date|date:"Y.m.d" }})</small></h4>
+        <div style="height: 300px; width: 100%;">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
 </div>
+
+{{ daily_reservations|json_script:"dailyReservationsData" }}
+{{ daily_signups|json_script:"dailySignupsData" }}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const reservationData = [
-        {% for item in daily_reservations %}
-            { x: "{{ item.date|date:'Y-m-d' }}", y: {{ item.count }} },
-        {% endfor %}
-    ];
+    function getChartData(id) {
+        // HTML 요소에 숨겨진 JSON 데이터를 가져와서 파싱
+        const element = document.getElementById(id);
+        if (!element) {
+            console.error('Data element not found:', id); // 요소가 없으면 에러 출력
+            return [];
+        }
+        const rawData = JSON.parse(element.textContent);
+        return rawData.map(item => ({
+            x: item.date, 
+            y: item.count 
+        }));
+    }
     
-    const signupData = [
-        {% for item in daily_signups %}
-            { x: "{{ item.date|date:'Y-m-d' }}", y: {{ item.count }} },
-        {% endfor %}
-    ];
-
+    // json_script에서 지정한 ID("dailyReservationsData")와 일치해야 함
+    const reservationData = getChartData('dailyReservationsData');
+    const signupData = getChartData('dailySignupsData');
+    
     const ctx = document.getElementById('trendChart').getContext('2d');
     const trendChart = new Chart(ctx, {
         type: 'line',
@@ -140,27 +141,36 @@
             datasets: [{
                 label: '일별 예약 건수',
                 data: reservationData,
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1,
-                fill: false
+                borderColor: '#4e54c8',
+                backgroundColor: 'rgba(78, 84, 200, 0.1)',
+                tension: 0.3,
+                fill: true
             }, {
                 label: '일별 신규 가입',
                 data: signupData,
-                borderColor: 'rgb(255, 99, 132)',
-                tension: 0.1,
-                fill: false
+                borderColor: '#ff6384',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                tension: 0.3,
+                fill: true
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
             scales: {
                 x: {
                     type: 'category',
-                    title: { display: true, text: '날짜' }
+                    grid: { display: false }
                 },
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: '건수' }
+                    grid: { borderDash: [5, 5] },
+                    ticks: {
+                        stepSize: 1
+                    }
                 }
             }
         }

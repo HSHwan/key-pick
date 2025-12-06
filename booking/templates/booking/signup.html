@@ -1,37 +1,60 @@
-{% extends 'booking/base.html' %} {% block title %}회원가입{% endblock %}
-{%block content %}
-<h2>회원가입</h2>
-{% if error %}
-        <p style="color: red; font-weight: bold;">{{ error }}</p>
-    {% endif %}
-    <form method="POST">
-        {% csrf_token %}
+{% extends 'booking/base.html' %} 
+
+{% block title %}회원가입{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; margin-top: 50px; margin-bottom: 50px;">
+    
+    <div class="content-box">
+        <h2 style="text-align: center; margin-bottom: 30px; font-weight: bold;">회원가입</h2>
+        
+        {% if error %}
+            <div class="alert alert-danger" role="alert" style="text-align: center; font-size: 0.9em;">
+                ⚠️ {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="id_login_id" class="form-label">로그인 ID</label>
+                <input type="text" name="login_id" id="id_login_id" class="form-control" placeholder="사용하실 아이디를 입력하세요" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="id_password1" class="form-label">비밀번호</label>
+                <input type="password" name="password" id="id_password1" class="form-control" placeholder="비밀번호를 입력하세요" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="id_password2" class="form-label">비밀번호 확인</label>
+                <input type="password" name="password_confirm" id="id_password2" class="form-control" placeholder="비밀번호를 한 번 더 입력하세요" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="id_name" class="form-label">이름</label>
+                <input type="text" name="name" id="id_name" class="form-control" placeholder="실명을 입력하세요" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="id_phone" class="form-label">연락처</label>
+                <input type="text" name="phone" id="id_phone" class="form-control" placeholder="010-xxxx-xxxx" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100" style="padding: 12px; font-weight: bold; font-size: 1.05em; background-color: #4e54c8; border: none;">
+                가입하기
+            </button>
         </form>
 
-<form method="POST">
-  {% csrf_token %}
-
-  <div>
-    <label for="id_login_id">로그인 ID:</label>
-    <input type="text" name="login_id" id="id_login_id" required />
-  </div>
-  <div>
-    <label for="id_password1">비밀번호:</label>
-    <input type="password" name="password" id="id_password1" required />
-  </div>
-  <div>
-    <label for="id_password2">비밀번호 확인:</label>
-    <input type="password" name="password_confirm" id="id_password2" required />
-  </div>
-  <div>
-    <label for="id_name">이름:</label>
-    <input type="text" name="name" id="id_name" required />
-  </div>
-  <div>
-    <label for="id_phone">연락처:</label>
-    <input type="text" name="phone" id="id_phone" required />
-  </div>
-
-  <button type="submit">가입하기</button>
-</form>
+        <div style="margin-top: 20px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
+            <p style="color: #666; font-size: 0.9em; margin: 0;">
+                이미 계정이 있으신가요? 
+                <a href="{% url 'login' %}" style="color: #4e54c8; text-decoration: none; font-weight: bold; margin-left: 5px;">
+                    로그인 하기
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
 {% endblock %}

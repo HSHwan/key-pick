@@ -3,78 +3,82 @@
 {% block title %}예약 완료 처리{% endblock %}
 
 {% block content %}
-<div class="complete-reservation-form">
-    <h1>✅ 예약 완료 처리</h1>
+<div class="container" style="max-width: 600px; margin-top: 50px; margin-bottom: 50px;">
     
-    <hr>
-    
-    <!-- 예약 정보 요약 -->
-    <div class="reservation-info" style="background: #f4f4f4; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-        <h2>예약 정보</h2>
-        <p><strong>예약 번호:</strong> {{ reservation.reservation_id }}</p>
-        <p><strong>테마:</strong> {{ reservation.theme.name }} ({{ reservation.theme.branch.branch_name }})</p>
-        <p><strong>예약자:</strong> {{ reservation.member.name|default:"탈퇴회원" }}</p>
-        <p><strong>예약 시간:</strong> {{ reservation.reservation_time|date:"Y.m.d H:i" }}</p>
-        <p><strong>참가 인원:</strong> {{ reservation.num_of_participants }}명</p>
-    </div>
-    
-    <hr>
-    
-    <!-- 완료 처리 폼 -->
-    <div class="completion-form">
-        <h2>이용 결과 입력</h2>
+    <div class="content-box">
+        <h2 class="fw-bold mb-4 text-center">✅ 예약 완료 처리</h2>
+        
+        <div class="card bg-light border-0 mb-4">
+            <div class="card-body">
+                <h5 class="card-title fw-bold mb-3 border-bottom pb-2">📌 예약 정보</h5>
+                <div class="row g-2">
+                    <div class="col-4 text-muted">예약 번호</div>
+                    <div class="col-8 fw-bold">#{{ reservation.reservation_id }}</div>
+                    
+                    <div class="col-4 text-muted">테마</div>
+                    <div class="col-8">{{ reservation.theme.name }} <small class="text-muted">({{ reservation.theme.branch.branch_name }})</small></div>
+                    
+                    <div class="col-4 text-muted">예약자</div>
+                    <div class="col-8">{{ reservation.member.name|default:"탈퇴회원" }}</div>
+                    
+                    <div class="col-4 text-muted">예약 시간</div>
+                    <div class="col-8">{{ reservation.reservation_time|date:"Y.m.d H:i" }}</div>
+                    
+                    <div class="col-4 text-muted">참가 인원</div>
+                    <div class="col-8">{{ reservation.num_of_participants }}명</div>
+                </div>
+            </div>
+        </div>
+        
+        <hr class="my-4">
+        
+        <h4 class="fw-bold mb-3">📝 이용 결과 입력</h4>
         
         <form method="POST">
             {% csrf_token %}
             
-            <div style="margin-bottom: 20px;">
-                <label for="hint_count" style="display: block; margin-bottom: 5px; font-weight: bold;">
-                    힌트 사용 횟수:
-                </label>
+            <div class="mb-3">
+                <label for="hint_count" class="form-label fw-bold">힌트 사용 횟수</label>
                 <input type="number" 
                        id="hint_count" 
                        name="hint_count" 
                        min="0" 
                        value="0" 
-                       style="width: 200px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                       class="form-control"
+                       placeholder="숫자만 입력하세요">
             </div>
             
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">
-                    <input type="checkbox" name="is_success" style="margin-right: 5px;">
-                    탈출 성공
-                </label>
+            <div class="mb-3">
+                <div class="form-check form-switch p-3 border rounded bg-light">
+                    <input class="form-check-input ms-0 me-2" type="checkbox" id="is_success" name="is_success" style="cursor: pointer;">
+                    <label class="form-check-label fw-bold" for="is_success" style="cursor: pointer;">
+                        탈출 성공 여부 (성공 시 체크)
+                    </label>
+                </div>
             </div>
             
-            <div style="margin-bottom: 20px;">
-                <label for="clear_time" style="display: block; margin-bottom: 5px; font-weight: bold;">
-                    클리어 시간 (분):
-                </label>
+            <div class="mb-4">
+                <label for="clear_time" class="form-label fw-bold">클리어 시간 (분)</label>
                 <input type="number" 
                        id="clear_time" 
                        name="clear_time" 
                        min="0" 
-                       placeholder="탈출 성공 시에만 입력"
-                       style="width: 200px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                <p style="font-size: 0.9em; color: #888; margin-top: 5px;">
-                    * 탈출에 성공하지 못한 경우 비워두세요.
-                </p>
+                       class="form-control"
+                       placeholder="탈출 성공 시 소요 시간을 분 단위로 입력하세요">
+                <div class="form-text text-muted">
+                    ※ 탈출에 실패한 경우 비워두셔도 됩니다.
+                </div>
             </div>
             
-            <hr style="margin: 30px 0;">
-            
-            <div style="display: flex; gap: 10px;">
-                <button type="submit" 
-                        style="background: #28a745; color: white; padding: 12px 30px; border: none; border-radius: 4px; font-size: 1em; cursor: pointer;">
-                    완료 처리
+            <div class="d-flex gap-2 pt-2">
+                <button type="submit" class="btn btn-success flex-grow-1 fw-bold py-2">
+                    완료 처리 저장
                 </button>
-                <a href="{% url 'theme-manager-dashboard' %}" 
-                   style="background: #6c757d; color: white; padding: 12px 30px; border-radius: 4px; text-decoration: none; display: inline-block;">
+                <a href="{% url 'theme-manager-dashboard' %}" class="btn btn-secondary fw-bold py-2 px-4">
                     취소
                 </a>
             </div>
         </form>
     </div>
-    
 </div>
 {% endblock %}

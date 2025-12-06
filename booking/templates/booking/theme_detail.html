@@ -2,48 +2,66 @@
 
 {% block content %}
 <div class="container">
-    <div class="theme-detail-header" style="border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
-        <h1>{{ theme.name }}</h1>
-        <p><strong>지점:</strong> {{ theme.branch.branch_name }}</p>
-        <p><strong>장르:</strong> {{ theme.genre }} | <strong>난이도:</strong> {{ theme.difficulty }} | <strong>시간:</strong> {{ theme.duration }}분</p>
-        <p><strong>가격:</strong> {{ theme.price }}원</p>
-        <hr>
-        <p>{{ theme.description|linebreaks }}</p>
-        
-        <a href="{% url 'reservation-create' theme.theme_id %}" class="btn btn-primary">이 테마 예약하기</a>
-    </div>
-
-    <div class="review-section">
-        <h2>리뷰 ({{ reviews.count }}개)</h2>
-        <hr>
-        {% for review in reviews %}
-        <div class="review-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px;">
-            <div style="margin-bottom: 1rem;">
-                <strong>{{ review.member.name }}</strong>
-                <span style="color: #f0ad4e; font-weight: bold;">(★ {{ review.rating }})</span>
+    <div class="content-box mb-5">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <span class="badge bg-secondary mb-2">{{ theme.branch.branch_name }}</span>
+                <h1 class="fw-bold mb-3">{{ theme.name }}</h1>
                 
-                {% if review.member == user %}
-                    <span style="margin-left: 10px; font-size: 0.9em;">
-                        <a href="{% url 'review-update' review.review_id %}">수정</a>
-                        
-                        <span style="color: #ccc; margin: 0 2px;">|</span>
-                        
-                        <form action="{% url 'review-delete' review.review_id %}" method="POST" style="display: inline; margin: 0;">
-                            {% csrf_token %}
-                            <button type="submit" onclick="return confirm('이 리뷰를 삭제하시겠습니까?');" 
-                                    style="background: none; border: none; color: #dc3545; cursor: pointer; text-decoration: underline; padding: 0; font: inherit; display: inline;">
-                                삭제
-                            </button>
-                        </form>
-                    </span>
-                {% endif %}
+                <div class="d-flex gap-3 text-muted mb-4">
+                    <span>🧩 {{ theme.genre }}</span>
+                    <span>🔥 난이도 {{ theme.difficulty }}</span>
+                    <span>⏱️ {{ theme.duration }}분</span>
+                </div>
+                
+                <h3 class="fw-bold text-primary mb-4">{{ theme.price }}원 <small class="fs-6 text-muted fw-normal">/ 1인</small></h3>
+                
+                <p class="lead fs-6" style="line-height: 1.8;">{{ theme.description|linebreaksbr }}</p>
             </div>
             
-            <p style="color: #777; font-size: 0.9em;">{{ review.created_at|date:"Y.m.d" }}</p>
-            <p>{{ review.comment|linebreaks }}</p>
+            <div class="col-md-4 text-center mt-4 mt-md-0">
+                <div class="p-4 bg-light rounded-3">
+                    <p class="mb-3 text-muted">지금 바로 도전하세요!</p>
+                    <a href="{% url 'reservation-create' theme.theme_id %}" class="btn btn-primary w-100 py-3 fw-bold fs-5" style="background-color: #4e54c8; border: none;">
+                        이 테마 예약하기
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="fw-bold mb-4">📝 생생 후기 <span class="text-muted fs-5">({{ reviews.count }})</span></h3>
+        
+        {% for review in reviews %}
+        <div class="content-box p-4 mb-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <span class="fw-bold me-2">{{ review.member.name }}</span>
+                    <span class="text-warning fw-bold">★ {{ review.rating }}</span>
+                </div>
+                <span class="text-muted small">{{ review.created_at|date:"Y.m.d" }}</span>
+            </div>
+            
+            <p class="mb-2 text-secondary">{{ review.comment|linebreaksbr }}</p>
+            
+            {% if review.member == user %}
+                <div class="text-end mt-2">
+                    <a href="{% url 'review-update' review.review_id %}" class="btn btn-sm btn-outline-secondary py-0">수정</a>
+                    <form action="{% url 'review-delete' review.review_id %}" method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" onclick="return confirm('이 리뷰를 삭제하시겠습니까?');" 
+                                class="btn btn-sm btn-outline-danger py-0 border-0">
+                            삭제
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
         </div>
         {% empty %}
-            <p>아직 작성된 리뷰가 없습니다.</p>
+            <div class="text-center py-5 text-muted bg-white rounded shadow-sm">
+                아직 작성된 리뷰가 없습니다. 첫 번째 리뷰어가 되어보세요! 🕵️
+            </div>
         {% endfor %}
     </div>
 </div>
