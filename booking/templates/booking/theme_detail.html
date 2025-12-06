@@ -14,7 +14,26 @@
                     <span>⏱️ {{ theme.duration }}분</span>
                 </div>
                 
-                <h3 class="fw-bold text-primary mb-4">{{ theme.price }}원 <small class="fs-6 text-muted fw-normal">/ 1인</small></h3>
+                <h3 class="fw-bold mb-4">
+                    {% if theme.discount_rate > 0 %}
+                        <span class="text-decoration-line-through text-muted fs-5 me-2">
+                            {{ theme.price }}원
+                        </span>
+                        
+                        <span class="text-danger fw-bold">
+                            {{ theme.final_price }}원
+                        </span>
+                        
+                        <span class="badge bg-danger align-middle ms-2" style="font-size: 0.5em;">
+                            {{ theme.discount_rate|floatformat:0 }}% SALE
+                        </span>
+                    {% else %}
+                        <span class="text-primary">
+                            {{ theme.price }}원
+                        </span>
+                    {% endif %}
+                    <small class="fs-6 text-muted fw-normal">/ 1인</small>
+                </h3>
                 
                 <p class="lead fs-6" style="line-height: 1.8;">{{ theme.description|linebreaksbr }}</p>
             </div>

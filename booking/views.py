@@ -198,7 +198,7 @@ def reservation_create_view(request, theme_id):
                 reservation.member = request.user
                 reservation.theme = theme
                 
-                total_price = theme.price * num_of_participants
+                total_price = theme.final_price * num_of_participants 
                 reservation.total_price = total_price
                 
                 reservation.save()
@@ -529,29 +529,47 @@ def admin_global_stats_view(request):
     
     end_date = timezone.now().date()
     start_date = end_date - timedelta(days=29)
-    
-    daily_reservations = list(Reservation.objects.filter(
+
+    res_queryset = Reservation.objects.filter(
         reservation_time__date__range=(start_date, end_date)
     ).annotate(
         date=TruncDate('reservation_time')
     ).values('date').annotate(
         count=Count('reservation_id')
-    ).order_by('date'))
+    )
+    res_dict = {item['date']: item['count'] for item in res_queryset}
 
-    daily_signups = list(Member.objects.filter(
+    signup_queryset = Member.objects.filter(
         created_at__date__range=(start_date, end_date)
     ).annotate(
         date=TruncDate('created_at')
     ).values('date').annotate(
         count=Count('member_id')
-    ).order_by('date'))    
+    )
+    signup_dict = {item['date']: item['count'] for item in signup_queryset}
+    
+    daily_reservations = []
+    daily_signups = []
+    
+    for i in range(30):
+        current_date = start_date + timedelta(days=i)
+
+        daily_reservations.append({
+            'date': current_date.strftime("%Y-%m-%d"),
+            'count': res_dict.get(current_date, 0)
+        })
+        
+        daily_signups.append({
+            'date': current_date.strftime("%Y-%m-%d"),
+            'count': signup_dict.get(current_date, 0)
+        })
 
     context = {
         'branch_stats': branch_stats,
         'best_themes': best_themes,
         'worst_themes': worst_themes,
-        'daily_reservations': daily_reservations,
-        'daily_signups': daily_signups,
+        'daily_reservations': daily_reservations, # 0이 채워진 리스트 전달
+        'daily_signups': daily_signups,           # 0이 채워진 리스트 전달
         'start_date': start_date,
         'end_date': end_date,
     }

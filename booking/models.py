@@ -127,6 +127,13 @@ class Theme(models.Model):
     def __str__(self):
         return f"[{self.branch.branch_name}] {self.name}"
 
+    @property
+    def final_price(self):
+        if self.discount_rate > 0:
+            discount_amount = self.price * (self.discount_rate / 100)
+            return int(self.price - discount_amount)
+        return self.price
+
 # ----------------------------------------------------------------------
 # 4. Reservation (예약)
 # ----------------------------------------------------------------------
